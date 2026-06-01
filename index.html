@@ -9058,6 +9058,10 @@ TRIPS.forEach(t=>t.g.forEach(k=>{(byRegion[k]=byRegion[k]||[]).push(t);}));
 Object.values(byRegion).forEach(arr=>arr.sort((a,b)=>a.dates.localeCompare(b.dates)||a.title.localeCompare(b.title)));
 function finishLoading(){const loader=document.getElementById('loader');if(loader)loader.classList.add('hide');}
 const map=L.map('map',{worldCopyJump:true,minZoom:2,maxZoom:8,zoomControl:false}).setView([27,-25],2.35);
+function stabilizeMap(){map.invalidateSize(false);}
+setTimeout(stabilizeMap,120);
+setTimeout(stabilizeMap,700);
+window.addEventListener('resize',stabilizeMap);
 L.control.zoom({position:'bottomleft'}).addTo(map);
 const baseLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics &middot; Sailings: Brian Harris / Virtuoso',maxZoom:8});
 baseLayer.on('load',finishLoading);
@@ -9176,6 +9180,66 @@ applyFilter();
 function closePanel(){panel.classList.remove('open');activeView=null;document.getElementById('datePop').classList.remove('open');}
 document.getElementById('close').addEventListener('click',closePanel);
 map.on('click',closePanel);document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+</script>
+
+<!-- ===== Menu show/hide toggle (mobile-friendly) ===== -->
+<style>
+  #menuToggle{position:absolute;z-index:1200;left:14px;bottom:84px;width:44px;height:44px;
+    border-radius:50%;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+    font-size:19px;line-height:1;cursor:pointer;box-shadow:var(--shadow);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;padding:0}
+  #menuToggle:hover{border-color:var(--accent)}
+  #menuToggle:active{transform:scale(.93)}
+  body.rail-hidden .rail{display:none !important}
+  body.rail-shown .rail{display:flex !important;background:rgba(17,21,29,.96) !important;
+    border:1px solid var(--line) !important;border-radius:14px !important;box-shadow:var(--shadow) !important;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px) !important;max-height:calc(100% - 150px) !important}
+  body.rail-shown .rail h2{display:block !important}
+  body.rail-shown .rail .ops{display:block !important}
+  body.rail-shown .rail .reset.show{display:block !important}
+</style>
+<button id="menuToggle" type="button" aria-label="Show or hide menus" title="Show / hide menus">☰</button>
+<script>
+(function(){
+  var btn=document.getElementById('menuToggle');
+  if(!btn)return;
+  var panel=document.querySelector('.panel');
+  var rail=document.querySelector('.rail');
+  var mq=window.matchMedia('(max-width:640px)');
+  function railVisible(){return rail&&getComputedStyle(rail).display!=='none'&&document.body.classList.contains('rail-shown')||(rail&&getComputedStyle(rail).display!=='none'&&!mq.matches);}
+  function sync(){
+    var open=(panel&&panel.classList.contains('open'))||railVisible();
+    btn.textContent=open?'✕':'☰';
+  }
+  btn.addEventListener('click',function(){
+    if(panel&&panel.classList.contains('open')){
+      panel.classList.remove('open');
+    }else if(railVisible()){
+      document.body.classList.add('rail-hidden');
+      document.body.classList.remove('rail-shown');
+    }else{
+      document.body.classList.add('rail-shown');
+      document.body.classList.remove('rail-hidden');
+    }
+    sync();
+  });
+  if(panel){
+    new MutationObserver(function(){
+      if(panel.classList.contains('open')){
+        if(mq.matches){
+          document.body.classList.add('rail-hidden');
+          document.body.classList.remove('rail-shown');
+        }
+      }else{
+        document.body.classList.remove('rail-hidden');
+        document.body.classList.remove('rail-shown');
+      }
+      sync();
+    }).observe(panel,{attributes:true,attributeFilter:['class']});
+  }
+  sync();
+})();
 </script>
 </body>
 </html>
