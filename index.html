@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Luxury Hotel Brand Yacht Atlas — Where Each Ship Sails</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://server.arcgisonline.com" crossorigin>
+<link rel="stylesheet" href="vendor/leaflet.min.css">
 <style>
   :root{
     --bg:#0a0d13; --panel:#11151d; --panel2:#171c26; --line:#2a3340;
@@ -141,7 +142,7 @@
   <div class="list" id="pList"></div>
 </section>
 <div class="hint">Drag to explore &middot; tap a <b>glowing pin</b> for sailings &middot; filter by <b>brand</b> or <b>departure month</b></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="vendor/leaflet.min.js"></script>
 <script>
   // ── DATA LOADING ─────────────────────────────────────────────────────────
   let BRANDS, REGIONS, TRIPS;
@@ -161,7 +162,7 @@ function logoEl(brandKey){
   const wrap=document.createElement('div');wrap.className='lg';
   function fallback(){wrap.innerHTML='';wrap.style.background=m.color;wrap.style.color='#fff';wrap.textContent=(m.short.match(/[A-Za-z]/g)||['?']).slice(0,2).join('').toUpperCase();}
   if(!m.domain){fallback();return wrap;}
-  const sources=['https://www.google.com/s2/favicons?sz=128&domain='+m.domain,'https://icons.duckduckgo.com/ip3/'+m.domain+'.ico'];
+  const sources=['logos/'+m.domain+'.png','https://www.google.com/s2/favicons?sz=128&domain='+m.domain,'https://icons.duckduckgo.com/ip3/'+m.domain+'.ico'];
   const img=document.createElement('img');img.loading='lazy';img.alt=m.short;let i=0;
   img.onerror=function(){if(i<sources.length){img.src=sources[i++];}else{fallback();}};
   img.onload=function(){if(img.naturalWidth<8){img.onerror();}};
@@ -179,7 +180,6 @@ window.addEventListener('resize',stabilizeMap);
 L.control.zoom({position:'bottomleft'}).addTo(map);
 const baseLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics &middot; Sailings: Brian Harris / Virtuoso',maxZoom:8});
 baseLayer.addTo(map);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:8,opacity:.5}).addTo(map);
 const markers={};let activeBrand=null,activeView=null;const activeMonths=new Set();
 Object.keys(byRegion).forEach(key=>{
   const reg=REGIONS[key];if(!reg)return;
