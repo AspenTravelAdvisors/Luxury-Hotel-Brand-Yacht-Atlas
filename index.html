@@ -192,7 +192,8 @@ Object.keys(byRegion).forEach(key=>{
   markers[key]={marker:mk,el,sailings};
 });
 function dateSort(a,b){return (a.startY*10000+a.startM*100+a.startD)-(b.startY*10000+b.startM*100+b.startD);}
-function matchesFilters(t){return (!activeBrand||t.brand===activeBrand)&&(!activeMonths.size||activeMonths.has(t.monthKey));}
+function isPastTrip(t){const td=new Date();td.setHours(0,0,0,0);return new Date(t.startY,t.startM-1,t.startD)<td;}
+function matchesFilters(t){return !isPastTrip(t)&&(!activeBrand||t.brand===activeBrand)&&(!activeMonths.size||activeMonths.has(t.monthKey));}
 function filteredSailings(sailings){return sailings.filter(matchesFilters);}
 function monthLabel(key){const parts=key.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(parts[1])-1]+' '+parts[0];}
 function updateDateSummary(){
