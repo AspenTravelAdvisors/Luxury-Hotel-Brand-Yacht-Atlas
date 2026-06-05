@@ -349,7 +349,7 @@ map.on('click',closePanel);document.addEventListener('keydown',e=>{if(e.key==='E
   var panelPill=document.getElementById('panelPill');
   var panel=document.querySelector('.panel');
   var mq=window.matchMedia('(max-width:640px)');
-  var railCollapsed=false;                    // filters visible on load (incl. mobile)
+  var railCollapsed=mq.matches;               // hidden on mobile/small screens by default
   function setIcon(el,ch){ var p=el&&el.querySelector('.pi'); if(p)p.innerHTML=ch; }
   function syncRail(){
     body.classList.toggle('rail-hidden',railCollapsed);
