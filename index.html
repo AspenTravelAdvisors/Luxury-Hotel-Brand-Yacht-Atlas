@@ -92,6 +92,19 @@
   .rmarker:hover .tag{opacity:1}
   .hint{position:absolute;z-index:1000;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(17,21,29,.92);border:1px solid var(--line);border-radius:30px;padding:8px 18px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);backdrop-filter:blur(6px);max-width:92vw;text-align:center}
   .hint b{color:var(--ink)}
+  /* ---------- Route tracing (ported from Private Jet Atlas) ---------- */
+  .stopdot{transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7e6,#caa44e 65%,#7a5a1e);border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font:700 10px/1 var(--sans);color:#3a2c0d}
+  .leaflet-tooltip.stoptip{background:rgba(8,11,16,.94);border:1px solid var(--line);color:var(--ink);font:600 11.5px var(--sans);padding:3px 8px;border-radius:7px;box-shadow:0 3px 10px rgba(0,0,0,.55)}
+  .leaflet-tooltip.stoptip:before{border-top-color:rgba(8,11,16,.94)}
+  .rmarker.route .ring{background:radial-gradient(circle at 35% 30%,#fff7e6,#ffe9b0 55%,#caa44e);border-color:#fff;box-shadow:0 0 0 5px rgba(236,223,194,.4),0 6px 18px rgba(0,0,0,.55);transform:scale(1.08)}
+  .card .tracebtn{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:6px 11px;border-radius:9px;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--accent);background:rgba(202,164,78,.10);border:1px solid rgba(202,164,78,.45);-webkit-tap-highlight-color:transparent;transition:.15s}
+  .card .tracebtn:hover{background:rgba(202,164,78,.20);border-color:var(--accent)}
+  .card .tracebtn:active{transform:scale(.97)}
+  body.tracing .rmarker{opacity:.28;transition:opacity .3s ease}
+  body.tracing .rmarker:hover{opacity:.85}
+  body.tracing .rmarker.route{opacity:1}
+  #routeBack{display:none;position:absolute;z-index:1200;left:50%;bottom:84px;transform:translateX(-50%);align-items:center;gap:7px;padding:10px 17px;border-radius:30px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink);background:var(--panel2);border:1px solid var(--line);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  @media (max-width:640px){body.tracing .panel.open{transform:translateX(102%) !important}body.tracing #routeBack{display:inline-flex}}
   .leaflet-popup,.leaflet-control-attribution{font-family:var(--sans)}
   .leaflet-bottom.leaflet-left{bottom:18px;left:14px}
   .leaflet-bar{border:1px solid var(--line);box-shadow:var(--shadow)}
@@ -146,13 +159,14 @@
 <script src="vendor/leaflet.min.js"></script>
 <script>
   // ── DATA LOADING ─────────────────────────────────────────────────────────
-  let BRANDS, REGIONS, TRIPS;
+  let BRANDS, REGIONS, TRIPS, PORTS;
   const _dataReady = fetch('itinerary.json')
     .then(r => r.json())
     .then(d => {
       BRANDS = d.BRANDS;
       REGIONS = d.REGIONS;
       TRIPS = d.TRIPS;
+      PORTS = d.PORTS || {};
     });
   
 ;
@@ -182,6 +196,50 @@ L.control.zoom({position:'bottomleft'}).addTo(map);
 window.__atlasMap=map;
 const baseLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics &middot; Sailings: Brian Harris / Virtuoso',maxZoom:8});
 baseLayer.addTo(map);
+
+/* ===== Stops + route tracing (ported from Private Jet Atlas) =====
+   Each trip's stops come from a future day-by-day `ports` array if present,
+   otherwise fall back to [from, to]. Names resolve to coords via PORTS. */
+function tripStops(t){
+  const names=(t.ports&&t.ports.length)?t.ports:[t.from,t.to];
+  const out=[];
+  names.forEach(n=>{ n=(n||'').trim(); if(!n)return; const ll=PORTS[n]; if(ll)out.push({n:n,ll:ll}); });
+  return out;
+}
+function isTraceable(t){
+  const s=tripStops(t);
+  if(s.length<2) return false;
+  return s.some(p=>p.ll[0]!==s[0].ll[0]||p.ll[1]!==s[0].ll[1]); // need 2+ distinct ports
+}
+let pinnedTrip=null, routeLocked=false;
+const routeLayer=L.layerGroup().addTo(map);
+function clearRoute(){ routeLayer.clearLayers(); Object.values(markers).forEach(o=>o.el.classList.remove('route')); }
+function unroll(coords){ const out=[coords[0].slice()]; for(let i=1;i<coords.length;i++){ let la=coords[i][0],lo=coords[i][1]; const prevLo=out[i-1][1]; while(lo-prevLo>180)lo-=360; while(lo-prevLo<-180)lo+=360; out.push([la,lo]); } return out; }
+function arcPts(a,b){ const la1=a[0],lo1=a[1],la2=b[0],lo2=b[1]; const mx=(lo1+lo2)/2,my=(la1+la2)/2,dx=lo2-lo1,dy=la2-la1; const k=0.16; const cx=mx-dy*k,cy=my+dx*k; const p=[]; for(let t=0;t<=1.0001;t+=0.04){ const x=(1-t)*(1-t)*lo1+2*(1-t)*t*cx+t*t*lo2; const y=(1-t)*(1-t)*la1+2*(1-t)*t*cy+t*t*la2; p.push([y,x]); } return p; }
+function drawRoute(trip,fit){
+  clearRoute();
+  const stops=tripStops(trip);
+  if(stops.length<2) return;
+  const lls=unroll(stops.map(s=>s.ll));
+  for(let i=0;i<lls.length-1;i++){
+    const pts=arcPts(lls[i],lls[i+1]);
+    L.polyline(pts,{color:'#3a2c0d',weight:6,opacity:.22,lineCap:'round'}).addTo(routeLayer);
+    L.polyline(pts,{color:'#e9cf86',weight:2.2,opacity:.95,lineCap:'round',dashArray:'1 7'}).addTo(routeLayer);
+  }
+  lls.forEach((c,i)=>{
+    const dot=L.divIcon({className:'',html:'<div class="stopdot">'+(i+1)+'</div>',iconSize:[0,0]});
+    L.marker(c,{icon:dot,riseOnHover:true}).addTo(routeLayer)
+      .bindTooltip((i+1)+'. '+stops[i].n,{direction:'top',offset:[0,-9],className:'stoptip',opacity:1});
+  });
+  (trip.g||[]).forEach(k=>{ if(markers[k]) markers[k].el.classList.add('route'); });
+  if(fit){
+    const small=window.matchMedia('(max-width:640px)').matches;
+    const panelOpen=document.getElementById('panel').classList.contains('open');
+    const padR=(!small&&panelOpen)?420:70;
+    map.fitBounds(L.latLngBounds(lls),{paddingTopLeft:[70,90],paddingBottomRight:[padR,70],maxZoom:6,animate:true,duration:.8});
+  }
+}
+
 const markers={};let activeBrand=null,activeView=null;const activeMonths=new Set();
 Object.keys(byRegion).forEach(key=>{
   const reg=REGIONS[key];if(!reg)return;
@@ -275,6 +333,17 @@ function makeCard(t){
   const ar=document.createElement('div');ar.className='arrow';ar.textContent='›';
   a.appendChild(lg);a.appendChild(meta);a.appendChild(ar);
   if(activeBrand&&t.brand===activeBrand)a.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  if(isTraceable(t)){
+    a.addEventListener('mouseenter',()=>{ if(!routeLocked) drawRoute(t,false); });
+    a.addEventListener('mouseleave',()=>{ if(!routeLocked){ pinnedTrip?drawRoute(pinnedTrip,false):clearRoute(); } });
+    const trace=document.createElement('span');
+    trace.className='tracebtn';trace.setAttribute('role','button');trace.tabIndex=0;
+    trace.innerHTML='&#128506; Trace route on map';
+    const doTrace=e=>{ e.preventDefault();e.stopPropagation(); pinnedTrip=t; routeLocked=true; document.body.classList.add('tracing'); drawRoute(t,true); };
+    trace.addEventListener('click',doTrace);
+    trace.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ')doTrace(e); });
+    meta.appendChild(trace);
+  }
   return a;
 }
 function sortTrips(sailings){
@@ -285,16 +354,30 @@ function sortTrips(sailings){
 }
 const panel=document.getElementById('panel');
 function openRegion(key){
-  activeView=key;const reg=REGIONS[key];const sailings=sortTrips(byRegion[key]);
+  activeView=key;
+  if(!routeLocked){ pinnedTrip=null; clearRoute(); document.body.classList.remove('tracing'); }
+  const reg=REGIONS[key];const sailings=sortTrips(byRegion[key]);
   document.getElementById('pTitle').textContent=reg.name;
-  document.getElementById('pSub').textContent=sailings.length+' hotel yacht sailing'+(sailings.length!==1?'s':'')+' found here · tap a card for cruise search';
+  document.getElementById('pSub').textContent=sailings.length+' hotel yacht sailing'+(sailings.length!==1?'s':'')+' found here · hover a card to preview its route, or tap a card for cruise search';
   const list=document.getElementById('pList');list.innerHTML='';sailings.forEach(t=>list.appendChild(makeCard(t)));
-  panel.classList.add('open');const c=reg.coord;map.flyTo([c[0],c[1]],Math.max(map.getZoom(),3),{duration:.8});
+  panel.classList.add('open');
+  if(!routeLocked){ const c=reg.coord;map.flyTo([c[0],c[1]],Math.max(map.getZoom(),3),{duration:.8}); }
 }
 applyFilter();
-function closePanel(){panel.classList.remove('open');activeView=null;document.getElementById('datePop').classList.remove('open');}
+function closePanel(){
+  panel.classList.remove('open');activeView=null;
+  pinnedTrip=null;routeLocked=false;clearRoute();document.body.classList.remove('tracing');
+  document.getElementById('datePop').classList.remove('open');
+}
 document.getElementById('close').addEventListener('click',closePanel);
-map.on('click',closePanel);document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+map.on('click',()=>{
+  document.getElementById('datePop').classList.remove('open');
+  if(routeLocked||pinnedTrip) return; // a traced route stays put until panel is closed or another card chosen
+  closePanel();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+const _routeBack=document.getElementById('routeBack');
+if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classList.remove('tracing'); }); }
 });
 </script>
 
@@ -342,6 +425,7 @@ map.on('click',closePanel);document.addEventListener('keydown',e=>{if(e.key==='E
   <button id="panelPill" class="dockbtn" type="button" aria-label="Show or hide the details panel" title="Show / hide details"><span class="pi">&#8249;</span><span class="pl">Details</span></button>
   <a id="helpDock" class="dockbtn" href="mailto:Book@BeVvip.com" data-help-open role="button" aria-label="Need help — contact us"><span class="pi">?</span><span class="pl">Need Help</span></a>
 </div>
+<div id="routeBack" role="button" tabindex="0">&#8593; Show sailings</div>
 <script>
 (function(){
   var body=document.body;
