@@ -94,6 +94,7 @@
   .hint b{color:var(--ink)}
   /* ---------- Route tracing (ported from Private Jet Atlas) ---------- */
   .stopdot{transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7e6,#caa44e 65%,#7a5a1e);border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font:700 10px/1 var(--sans);color:#3a2c0d}
+  .seatri{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #e9cf86;filter:drop-shadow(0 1px 2px rgba(0,0,0,.65))}
   .leaflet-tooltip.stoptip{background:rgba(8,11,16,.94);border:1px solid var(--line);color:var(--ink);font:600 11.5px var(--sans);padding:3px 8px;border-radius:7px;box-shadow:0 3px 10px rgba(0,0,0,.55)}
   .leaflet-tooltip.stoptip:before{border-top-color:rgba(8,11,16,.94)}
   .rmarker.route .ring{background:radial-gradient(circle at 35% 30%,#fff7e6,#ffe9b0 55%,#caa44e);border-color:#fff;box-shadow:0 0 0 5px rgba(236,223,194,.4),0 6px 18px rgba(0,0,0,.55);transform:scale(1.08)}
@@ -200,16 +201,25 @@ baseLayer.addTo(map);
 /* ===== Stops + route tracing (ported from Private Jet Atlas) =====
    Each trip's stops come from a future day-by-day `ports` array if present,
    otherwise fall back to [from, to]. Names resolve to coords via PORTS. */
+/* Ordered itinerary entries: port = {n,ll,day}; sea day = {sea:true}.
+   Uses day-by-day `itin` if present, else falls back to [from,to]. */
 function tripStops(t){
-  const names=(t.ports&&t.ports.length)?t.ports:[t.from,t.to];
-  const out=[];
-  names.forEach(n=>{ n=(n||'').trim(); if(!n)return; const ll=PORTS[n]; if(ll)out.push({n:n,ll:ll}); });
-  return out;
+  if(t.itin&&t.itin.length){
+    return t.itin.map(e=> e.s ? {sea:true} : {n:e.n, ll:PORTS[e.n], day:e.d})
+                 .filter(e=> e.sea || e.ll);
+  }
+  return [t.from,t.to].map(n=>({n:(n||'').trim(), ll:PORTS[(n||'').trim()]})).filter(e=>e.ll);
 }
+function portCoords(t){ return tripStops(t).filter(e=>e.ll).map(e=>e.ll); }
 function isTraceable(t){
-  const s=tripStops(t);
-  if(s.length<2) return false;
-  return s.some(p=>p.ll[0]!==s[0].ll[0]||p.ll[1]!==s[0].ll[1]); // need 2+ distinct ports
+  const c=portCoords(t);
+  return c.length>=2 && c.some(x=>x[0]!==c[0][0]||x[1]!==c[0][1]);
+}
+/* screen heading (deg) for a north-pointing triangle so its apex faces P->Q */
+function headingDeg(P,Q){
+  const latMid=(P[0]+Q[0])/2*Math.PI/180;
+  const dx=(Q[1]-P[1])*Math.cos(latMid), dy=(Q[0]-P[0]);
+  return Math.atan2(dx,dy)*180/Math.PI;
 }
 let pinnedTrip=null, routeLocked=false;
 const routeLayer=L.layerGroup().addTo(map);
@@ -218,18 +228,39 @@ function unroll(coords){ const out=[coords[0].slice()]; for(let i=1;i<coords.len
 function arcPts(a,b){ const la1=a[0],lo1=a[1],la2=b[0],lo2=b[1]; const mx=(lo1+lo2)/2,my=(la1+la2)/2,dx=lo2-lo1,dy=la2-la1; const k=0.16; const cx=mx-dy*k,cy=my+dx*k; const p=[]; for(let t=0;t<=1.0001;t+=0.04){ const x=(1-t)*(1-t)*lo1+2*(1-t)*t*cx+t*t*lo2; const y=(1-t)*(1-t)*la1+2*(1-t)*t*cy+t*t*la2; p.push([y,x]); } return p; }
 function drawRoute(trip,fit){
   clearRoute();
-  const stops=tripStops(trip);
-  if(stops.length<2) return;
-  const lls=unroll(stops.map(s=>s.ll));
+  const entries=tripStops(trip);
+  const ports=entries.filter(e=>e.ll);
+  if(ports.length<2) return;
+  const lls=unroll(ports.map(e=>e.ll));          // unrolled port coords
+  const legArcs=[];
   for(let i=0;i<lls.length-1;i++){
-    const pts=arcPts(lls[i],lls[i+1]);
+    const pts=arcPts(lls[i],lls[i+1]); legArcs.push(pts);
     L.polyline(pts,{color:'#3a2c0d',weight:6,opacity:.22,lineCap:'round'}).addTo(routeLayer);
     L.polyline(pts,{color:'#e9cf86',weight:2.2,opacity:.95,lineCap:'round',dashArray:'1 7'}).addTo(routeLayer);
   }
-  lls.forEach((c,i)=>{
+  // numbered port dots, tooltip shows the day + port
+  ports.forEach((e,i)=>{
     const dot=L.divIcon({className:'',html:'<div class="stopdot">'+(i+1)+'</div>',iconSize:[0,0]});
-    L.marker(c,{icon:dot,riseOnHover:true}).addTo(routeLayer)
-      .bindTooltip((i+1)+'. '+stops[i].n,{direction:'top',offset:[0,-9],className:'stoptip',opacity:1});
+    const lbl=(e.day?('Day '+e.day+' · '):'')+e.n;
+    L.marker(lls[i],{icon:dot,riseOnHover:true}).addTo(routeLayer)
+      .bindTooltip((i+1)+'. '+lbl,{direction:'top',offset:[0,-9],className:'stoptip',opacity:1});
+  });
+  // sea days -> count per leg (between consecutive ports)
+  const legSeas={}; let portIdx=-1;
+  entries.forEach(e=>{
+    if(e.ll){ portIdx++; }
+    else if(portIdx>=0 && portIdx<lls.length-1){ legSeas[portIdx]=(legSeas[portIdx]||0)+1; }
+  });
+  // place a triangle per sea day along its leg, apex pointing toward the next port
+  Object.keys(legSeas).forEach(key=>{
+    const li=+key, pts=legArcs[li], k=legSeas[li];
+    for(let j=0;j<k;j++){
+      const f=(j+1)/(k+1);
+      const idx=Math.min(pts.length-2, Math.max(1, Math.round(f*(pts.length-1))));
+      const deg=headingDeg(pts[idx],pts[idx+1]);
+      const tri=L.divIcon({className:'',html:'<div class="seatri" style="transform:translate(-50%,-50%) rotate('+deg.toFixed(1)+'deg)"></div>',iconSize:[0,0]});
+      L.marker(pts[idx],{icon:tri,interactive:false,keyboard:false}).addTo(routeLayer);
+    }
   });
   (trip.g||[]).forEach(k=>{ if(markers[k]) markers[k].el.classList.add('route'); });
   if(fit){
