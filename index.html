@@ -63,6 +63,26 @@
   .op .nm{font-size:12.5px;line-height:1.15;font-weight:600}
   .op .ct{font-size:10.5px;color:var(--muted);margin-top:1px}
   .op .dot{width:8px;height:8px;border-radius:50%;margin-left:auto;flex:0 0 auto;opacity:.9}
+  /* ---------- Ports filter ---------- */
+  .portpop{width:312px}
+  .portroles{display:flex;gap:5px;margin-bottom:10px}
+  .proll{flex:1;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-size:10.5px;cursor:pointer;padding:0 3px;transition:.14s}
+  .proll:hover{border-color:rgba(202,164,78,.6);color:var(--ink)}
+  .proll.active{background:linear-gradient(135deg,#caa44e,#ffe9b0);border-color:#fff;color:#3a2c0d;font-weight:800}
+  .portsearch{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;margin-bottom:9px}
+  .portsearch:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .portsearch::placeholder{color:var(--muted)}
+  .portlist{max-height:46vh;overflow-y:auto;margin:0 -4px;padding:0 4px}
+  .portrow{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;cursor:pointer;border:1px solid transparent;transition:.13s}
+  .portrow:hover{background:var(--panel2)}
+  .portrow.sel{background:var(--panel2);border-color:var(--accent)}
+  .portrow .pn{font-size:12.5px;font-weight:600;line-height:1.2}
+  .portrow .pb{font-size:10px;color:var(--muted);margin-top:2px}
+  .portrow .pc{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent2);background:rgba(202,164,78,.14);border:1px solid rgba(202,164,78,.32);border-radius:20px;padding:2px 8px;flex:0 0 auto}
+  .portempty{padding:16px 10px;color:var(--muted);font-size:12px;text-align:center}
+  .portpin{transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none}
+  .pp-dot{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7e6,#caa44e 60%,#7a5a1e);border:2px solid #fff;box-shadow:0 0 0 4px rgba(202,164,78,.32),0 4px 12px rgba(0,0,0,.6)}
+  .pp-lbl{margin-top:5px;white-space:nowrap;background:rgba(8,11,16,.92);border:1px solid var(--line);color:var(--ink);font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;letter-spacing:.2px}
   .rail .reset{margin:6px 10px 12px;text-align:center;font-size:11.5px;color:var(--accent);cursor:pointer;padding:7px;border:1px dashed var(--line);border-radius:9px;display:none}
   .rail .reset.show{display:block}
   .panel{position:absolute;z-index:1001;top:0;right:0;height:100%;width:392px;max-width:92vw;background:linear-gradient(180deg,var(--panel),#080b10);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.55);transform:translateX(105%);transition:transform .32s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column}
@@ -137,6 +157,13 @@
       <div class="fs" id="dateSummary">All sailings</div>
     </div>
   </div>
+  <div class="filterbtn" id="portBtn">
+    <div class="ico">&#9875;</div>
+    <div>
+      <div class="ft">Ports</div>
+      <div class="fs" id="portSummary">All ports</div>
+    </div>
+  </div>
   <h2>Filter by yacht brand</h2>
   <div class="ops" id="opList"></div>
   <div class="reset" id="reset">&#10005; Clear filter</div>
@@ -147,6 +174,20 @@
     <div class="clear" id="dateClear">Clear dates</div>
   </div>
   <div id="dateGrid"></div>
+</div>
+<div class="datepop portpop" id="portPop">
+  <div class="dh">
+    <h2>Filter by port</h2>
+    <div class="clear" id="portClear">Clear port</div>
+  </div>
+  <div class="portroles" id="portRoles">
+    <button type="button" class="proll active" data-role="any">All</button>
+    <button type="button" class="proll" data-role="embark">Embark</button>
+    <button type="button" class="proll" data-role="disembark">Disembark</button>
+    <button type="button" class="proll" data-role="call">Day&nbsp;visits</button>
+  </div>
+  <input id="portSearch" class="portsearch" type="search" placeholder="Search ports&hellip;" autocomplete="off">
+  <div class="portlist" id="portList"></div>
 </div>
 <section class="panel" id="panel">
   <div class="hero">
@@ -272,6 +313,26 @@ function drawRoute(trip,fit){
 }
 
 const markers={};let activeBrand=null,activeView=null;const activeMonths=new Set();
+let activePort=null,activePortRole='any',portView=null;
+const portMarkerLayer=L.layerGroup().addTo(map);
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+/* embarkation = first named port, disembarkation = last named port, calls = the rest */
+function tripPortRoles(t){
+  let names=[];
+  if(t.itin&&t.itin.length){ names=t.itin.filter(e=>e.n).map(e=>(e.n||'').trim()).filter(Boolean); }
+  if(!names.length){ names=[t.from,t.to].map(n=>(n||'').trim()).filter(Boolean); }
+  const embark=names[0]||null, disembark=names.length>1?names[names.length-1]:null;
+  const calls=new Set(names.slice(1,-1));
+  return {embark,disembark,calls,all:new Set(names)};
+}
+function tripMatchesPort(t,port,role){
+  if(!port) return true;
+  const r=tripPortRoles(t);
+  if(role==='embark') return r.embark===port;
+  if(role==='disembark') return r.disembark===port;
+  if(role==='call') return r.calls.has(port);
+  return r.all.has(port);
+}
 Object.keys(byRegion).forEach(key=>{
   const reg=REGIONS[key];if(!reg)return;
   const sailings=byRegion[key];const sz=Math.max(32,Math.min(60,28+sailings.length*.32));
@@ -284,7 +345,7 @@ Object.keys(byRegion).forEach(key=>{
 });
 function dateSort(a,b){return (a.startY*10000+a.startM*100+a.startD)-(b.startY*10000+b.startM*100+b.startD);}
 function isPastTrip(t){const td=new Date();td.setHours(0,0,0,0);return new Date(t.startY,t.startM-1,t.startD)<td;}
-function matchesFilters(t){return !isPastTrip(t)&&(!activeBrand||t.brand===activeBrand)&&(!activeMonths.size||activeMonths.has(t.monthKey));}
+function matchesFilters(t){return !isPastTrip(t)&&(!activeBrand||t.brand===activeBrand)&&(!activeMonths.size||activeMonths.has(t.monthKey))&&(!activePort||tripMatchesPort(t,activePort,activePortRole));}
 function filteredSailings(sailings){return sailings.filter(matchesFilters);}
 function monthLabel(key){const parts=key.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(parts[1])-1]+' '+parts[0];}
 function updateDateSummary(){
@@ -319,7 +380,7 @@ function buildDateGrid(){
         if(activeMonths.has(k))activeMonths.delete(k);else activeMonths.add(k);
         btn.classList.toggle('active',activeMonths.has(k));
         document.getElementById('dateBtn').classList.toggle('active',!!activeMonths.size);
-        updateDateSummary();applyFilter();if(activeView)openRegion(activeView);
+        updateDateSummary();applyFilter();refreshActivePanel();
       });
       monthWrap.appendChild(btn);
     });
@@ -328,12 +389,98 @@ function buildDateGrid(){
 }
 buildDateGrid();
 document.getElementById('dateBtn').addEventListener('click',e=>{
-  e.stopPropagation();document.getElementById('datePop').classList.toggle('open');
+  e.stopPropagation();portPop.classList.remove('open');document.getElementById('datePop').classList.toggle('open');
 });
 document.getElementById('datePop').addEventListener('click',e=>e.stopPropagation());
 document.getElementById('dateClear').addEventListener('click',()=>{
   activeMonths.clear();document.querySelectorAll('.month').forEach(m=>m.classList.remove('active'));
-  document.getElementById('dateBtn').classList.remove('active');updateDateSummary();applyFilter();if(activeView)openRegion(activeView);
+  document.getElementById('dateBtn').classList.remove('active');updateDateSummary();applyFilter();refreshActivePanel();
+});
+/* ===== Ports filter ===== */
+const portBtn=document.getElementById('portBtn'),portPop=document.getElementById('portPop');
+const portSearch=document.getElementById('portSearch'),portListEl=document.getElementById('portList');
+const portSummary=document.getElementById('portSummary');
+const roleLbl={any:'sailing visiting',embark:'sailing embarking at',disembark:'sailing disembarking at',call:'sailing with a day visit to'};
+/* aggregate ports across trips passing the *other* (date+brand) filters, not the port filter itself */
+function portAgg(role){
+  const agg={};
+  TRIPS.forEach(t=>{
+    if(isPastTrip(t))return;
+    if(activeBrand&&t.brand!==activeBrand)return;
+    if(activeMonths.size&&!activeMonths.has(t.monthKey))return;
+    const r=tripPortRoles(t);
+    const add=(name,k)=>{ if(!name||!PORTS[name])return; const a=agg[name]||(agg[name]={name,embark:0,disembark:0,call:0,seen:new Set()}); a[k]++; a.seen.add(t.id); };
+    add(r.embark,'embark');
+    if(r.disembark!==r.embark) add(r.disembark,'disembark');
+    r.calls.forEach(n=>add(n,'call'));
+  });
+  let arr=Object.values(agg).map(a=>({name:a.name,embark:a.embark,disembark:a.disembark,call:a.call,total:a.seen.size}));
+  if(role!=='any') arr=arr.filter(a=>a[role]>0);
+  arr.sort((a,b)=>a.name.localeCompare(b.name));
+  return arr;
+}
+function renderPortList(){
+  const q=(portSearch.value||'').trim().toLowerCase();
+  let arr=portAgg(activePortRole);
+  if(q) arr=arr.filter(a=>a.name.toLowerCase().includes(q));
+  portListEl.innerHTML='';
+  if(!arr.length){ portListEl.innerHTML='<div class="portempty">No ports match.</div>'; return; }
+  arr.forEach(a=>{
+    const row=document.createElement('div'); row.className='portrow'+(a.name===activePort?' sel':'');
+    const cnt=activePortRole==='any'?a.total:a[activePortRole];
+    const bits=[]; if(a.embark)bits.push(a.embark+' start'); if(a.disembark)bits.push(a.disembark+' end'); if(a.call)bits.push(a.call+' visit'+(a.call>1?'s':''));
+    row.innerHTML='<div><div class="pn">'+esc(a.name)+'</div><div class="pb">'+bits.join(' &middot; ')+'</div></div><div class="pc">'+cnt+'</div>';
+    row.addEventListener('click',()=>selectPort(a.name));
+    portListEl.appendChild(row);
+  });
+}
+function showPortPin(name){
+  portMarkerLayer.clearLayers();
+  const ll=PORTS[name]; if(!ll)return;
+  const html='<div class="portpin"><div class="pp-dot"></div><div class="pp-lbl">'+esc(name)+'</div></div>';
+  L.marker(ll,{icon:L.divIcon({className:'',html,iconSize:[0,0]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(portMarkerLayer);
+  if(!routeLocked) map.flyTo(ll,Math.max(map.getZoom(),5),{duration:.8});
+}
+function openPortResults(name){
+  portView=name; activeView=null;
+  if(!routeLocked){ pinnedTrip=null; clearRoute(); document.body.classList.remove('tracing'); }
+  const list=TRIPS.filter(matchesFilters).sort((a,b)=>dateSort(a,b)||a.title.localeCompare(b.title));
+  document.querySelector('.panel .klabel').textContent='Luxury yacht port';
+  document.getElementById('pTitle').textContent=name;
+  document.getElementById('pSub').textContent=list.length+' '+(roleLbl[activePortRole]||'sailing visiting')+' this port'+(list.length!==1?'s':'')+' &middot; hover a card to preview its route';
+  const L0=document.getElementById('pList'); L0.innerHTML=''; list.forEach(t=>L0.appendChild(makeCard(t)));
+  panel.classList.add('open');
+  showPortPin(name);
+}
+function selectPort(name){
+  activePort=name;
+  portBtn.classList.add('active');
+  portSummary.textContent=name.length>24?name.slice(0,23)+'…':name;
+  portPop.classList.remove('open');
+  applyFilter();
+  openPortResults(name);
+}
+function clearPortFilter(){
+  activePort=null; portView=null; portMarkerLayer.clearLayers();
+  portBtn.classList.remove('active'); portSummary.textContent='All ports';
+}
+function refreshActivePanel(){ if(portView) openPortResults(portView); else if(activeView) openRegion(activeView); }
+portBtn.addEventListener('click',e=>{
+  e.stopPropagation(); document.getElementById('datePop').classList.remove('open');
+  const open=portPop.classList.toggle('open'); if(open) renderPortList();
+});
+portPop.addEventListener('click',e=>e.stopPropagation());
+portSearch.addEventListener('input',renderPortList);
+document.getElementById('portRoles').addEventListener('click',e=>{
+  const b=e.target.closest('.proll'); if(!b)return;
+  activePortRole=b.dataset.role;
+  document.querySelectorAll('#portRoles .proll').forEach(x=>x.classList.toggle('active',x===b));
+  renderPortList();
+  if(activePort){ applyFilter(); if(portView) openPortResults(activePort); }
+});
+document.getElementById('portClear').addEventListener('click',()=>{
+  const had=!!portView; clearPortFilter(); applyFilter(); renderPortList();
+  if(had){ panel.classList.remove('open'); activeView=null; }
 });
 const opList=document.getElementById('opList');
 const brandCounts={};TRIPS.forEach(t=>brandCounts[t.brand]=(brandCounts[t.brand]||0)+1);
@@ -348,14 +495,14 @@ function toggleBrand(key,row){
   const wasActive=activeBrand===key;document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
   if(wasActive){activeBrand=null;}else{activeBrand=key;row.classList.add('active');}
   applyFilter();document.getElementById('reset').classList.toggle('show',!!activeBrand);
-  if(activeView)openRegion(activeView);
+  refreshActivePanel();
 }
 function applyFilter(){
   updateMarkerCounts();
 }
 document.getElementById('reset').addEventListener('click',()=>{
   activeBrand=null;document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
-  applyFilter();document.getElementById('reset').classList.remove('show');if(activeView)openRegion(activeView);
+  applyFilter();document.getElementById('reset').classList.remove('show');refreshActivePanel();
 });
 function makeCard(t){
   const a=document.createElement('a');a.className='card';a.href=t.u;a.target='_blank';a.rel='noopener';
@@ -385,9 +532,11 @@ function sortTrips(sailings){
 }
 const panel=document.getElementById('panel');
 function openRegion(key){
+  if(activePort){ clearPortFilter(); applyFilter(); }
   activeView=key;
   if(!routeLocked){ pinnedTrip=null; clearRoute(); document.body.classList.remove('tracing'); }
   const reg=REGIONS[key];const sailings=sortTrips(byRegion[key]);
+  document.querySelector('.panel .klabel').textContent='Luxury yacht region';
   document.getElementById('pTitle').textContent=reg.name;
   document.getElementById('pSub').textContent=sailings.length+' hotel yacht sailing'+(sailings.length!==1?'s':'')+' found here · hover a card to preview its route, or tap a card for cruise search';
   const list=document.getElementById('pList');list.innerHTML='';sailings.forEach(t=>list.appendChild(makeCard(t)));
@@ -399,10 +548,13 @@ function closePanel(){
   panel.classList.remove('open');activeView=null;
   pinnedTrip=null;routeLocked=false;clearRoute();document.body.classList.remove('tracing');
   document.getElementById('datePop').classList.remove('open');
+  portPop.classList.remove('open');
+  if(activePort){ clearPortFilter(); applyFilter(); }
 }
 document.getElementById('close').addEventListener('click',closePanel);
 map.on('click',()=>{
   document.getElementById('datePop').classList.remove('open');
+  portPop.classList.remove('open');
   if(routeLocked||pinnedTrip) return; // a traced route stays put until panel is closed or another card chosen
   closePanel();
 });
