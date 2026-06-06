@@ -95,6 +95,8 @@
   .panel .list{overflow-y:auto;padding:14px 16px 26px;flex:1}
   .card{display:flex;align-items:center;gap:13px;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);margin-bottom:10px;text-decoration:none;color:var(--ink);transition:.16s;position:relative}
   .card:hover{border-color:var(--accent);transform:translateY(-1px);background:#1d232f}
+  .card.routed{border-color:var(--accent);background:#1d232f;box-shadow:0 0 0 1px var(--accent),0 0 20px rgba(202,164,78,.30)}
+  .card.routed::before{content:"\25C9 On map";position:absolute;top:-9px;right:11px;font-size:9.5px;font-weight:800;letter-spacing:.04em;color:#3a2c0d;background:linear-gradient(135deg,#caa44e,#ffe9b0);padding:2px 8px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.45)}
   .card .lg{width:48px;height:48px;border-radius:10px;background:#fff;flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;font-weight:800;font-size:15px}
   .card .lg img{max-width:100%;max-height:100%;object-fit:contain}
   .card .meta{min-width:0}
@@ -264,7 +266,12 @@ function headingDeg(P,Q){
 }
 let pinnedTrip=null, routeLocked=false;
 const routeLayer=L.layerGroup().addTo(map);
-function clearRoute(){ routeLayer.clearLayers(); Object.values(markers).forEach(o=>o.el.classList.remove('route')); }
+function clearRoute(){ routeLayer.clearLayers(); Object.values(markers).forEach(o=>o.el.classList.remove('route')); markRoutedCard(null); }
+function markRoutedCard(trip,scroll){
+  let hit=null;
+  document.querySelectorAll('.card').forEach(c=>{ const on=trip&&c._trip===trip; c.classList.toggle('routed',on); if(on)hit=c; });
+  if(hit&&scroll) hit.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
 function unroll(coords){ const out=[coords[0].slice()]; for(let i=1;i<coords.length;i++){ let la=coords[i][0],lo=coords[i][1]; const prevLo=out[i-1][1]; while(lo-prevLo>180)lo-=360; while(lo-prevLo<-180)lo+=360; out.push([la,lo]); } return out; }
 function arcPts(a,b){ const la1=a[0],lo1=a[1],la2=b[0],lo2=b[1]; const mx=(lo1+lo2)/2,my=(la1+la2)/2,dx=lo2-lo1,dy=la2-la1; const k=0.16; const cx=mx-dy*k,cy=my+dx*k; const p=[]; for(let t=0;t<=1.0001;t+=0.04){ const x=(1-t)*(1-t)*lo1+2*(1-t)*t*cx+t*t*lo2; const y=(1-t)*(1-t)*la1+2*(1-t)*t*cy+t*t*la2; p.push([y,x]); } return p; }
 function drawRoute(trip,fit){
@@ -304,6 +311,7 @@ function drawRoute(trip,fit){
     }
   });
   (trip.g||[]).forEach(k=>{ if(markers[k]) markers[k].el.classList.add('route'); });
+  markRoutedCard(trip,fit);
   if(fit){
     const small=window.matchMedia('(max-width:640px)').matches;
     const panelOpen=document.getElementById('panel').classList.contains('open');
@@ -506,6 +514,7 @@ document.getElementById('reset').addEventListener('click',()=>{
 });
 function makeCard(t){
   const a=document.createElement('a');a.className='card';a.href=t.u;a.target='_blank';a.rel='noopener';
+  a._trip=t;
   const lg=logoEl(t.brand);const meta=document.createElement('div');meta.className='meta';
   meta.innerHTML='<div class="nm">'+t.title+'</div><div class="dt">'+t.dates+'</div><div class="go">'+BRANDS[t.brand].short+' &middot; '+t.ship+' &#8599;</div><div class="rt">'+t.route+'</div>';
   const ar=document.createElement('div');ar.className='arrow';ar.textContent='›';
