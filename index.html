@@ -560,6 +560,13 @@ function closePanel(){
   portPop.classList.remove('open');
   if(activePort){ clearPortFilter(); applyFilter(); }
 }
+/* Full reset: clear brand + port filters, close the panel, drop routes, un-dim pins */
+function showAll(){
+  activeBrand=null; document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
+  document.getElementById('reset').classList.remove('show');
+  clearPortFilter(); applyFilter(); closePanel();
+}
+window.__atlasShowAll=showAll;
 document.getElementById('close').addEventListener('click',closePanel);
 map.on('click',()=>{
   document.getElementById('datePop').classList.remove('open');
@@ -615,6 +622,7 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
 <div class="dock" role="toolbar" aria-label="Map controls">
   <button id="railPill" class="dockbtn" type="button" aria-label="Show or hide the filters menu" title="Show / hide filters"><span class="pi">&#9776;</span><span class="pl">Filters</span></button>
   <button id="panelPill" class="dockbtn" type="button" aria-label="Show or hide the details panel" title="Show / hide details"><span class="pi">&#8249;</span><span class="pl">Details</span></button>
+  <button id="resetAll" class="dockbtn" type="button" aria-label="Show all regions" title="Show all regions"><span class="pi">&#8634;</span><span class="pl">Show all</span></button>
   <a id="helpDock" class="dockbtn" href="mailto:Book@BeVvip.com" data-help-open role="button" aria-label="Need help — contact us"><span class="pi">?</span><span class="pl">Need Help</span></a>
 </div>
 <div id="routeBack" role="button" tabindex="0">&#8593; Show sailings</div>
@@ -637,6 +645,8 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
   }
   railPill.addEventListener('click',function(){ railCollapsed=!railCollapsed; syncRail(); });
   panelPill.addEventListener('click',function(){ body.classList.toggle('panel-collapsed'); syncPanel(); });
+  var resetAll=document.getElementById('resetAll');
+  if(resetAll){ resetAll.addEventListener('click',function(){ if(window.__atlasShowAll) window.__atlasShowAll(); }); }
   if(panel){
     new MutationObserver(function(){
       var open=panel.classList.contains('open');
