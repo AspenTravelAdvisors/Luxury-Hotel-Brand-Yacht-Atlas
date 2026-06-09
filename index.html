@@ -3,9 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Luxury Hotel Brand Yacht Atlas — Where Each Ship Sails</title>
-<link rel="preconnect" href="https://server.arcgisonline.com" crossorigin>
-<link rel="stylesheet" href="vendor/leaflet.min.css">
+<title>Hotel Atlas — Luxury Hotel Brand Destinations in 3D</title>
 <style>
   :root{
     --bg:#0a0d13; --panel:#11151d; --panel2:#171c26; --line:#2a3340;
@@ -17,133 +15,126 @@
   *{box-sizing:border-box}
   html,body{height:100%;margin:0}
   body{font-family:var(--sans);background:var(--bg);color:var(--ink);overflow:hidden}
-  #map{position:absolute;inset:0;background:#0a0d13;z-index:1}
-  .topbar{position:absolute;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;gap:14px;padding:12px 18px;background:linear-gradient(180deg,rgba(5,7,11,.94),rgba(5,7,11,.55) 70%,transparent);pointer-events:none}
-  .topbar .brand{pointer-events:auto;display:flex;align-items:center;gap:13px}
-  .topbar h1{font-family:var(--serif);font-size:23px;margin:0;letter-spacing:.4px;font-weight:600;line-height:1}
+  gmp-map-3d{position:absolute;top:64px;left:0;width:100%;height:calc(100% - 64px);display:block;touch-action:none}
+
+  .topbar{position:absolute;top:0;left:0;right:0;height:64px;z-index:1000;display:flex;align-items:center;gap:14px;padding:10px 18px;background:linear-gradient(180deg,#070a0f,#0a0d13);border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:13px;min-width:0}
+  .topbar h1{font-family:var(--serif);font-size:23px;margin:0;letter-spacing:.4px;font-weight:600;line-height:1;white-space:nowrap}
   .topbar h1 span{color:var(--accent)}
-  .topbar h1 a.bev{color:inherit;text-decoration:none;transition:.15s;pointer-events:auto}
+  .topbar h1 a.bev{color:inherit;text-decoration:none;transition:.15s}
   .topbar h1 a.bev:hover{color:var(--accent)}
   .topbar p{margin:3px 0 0;font-size:12px;color:var(--muted)}
   .logochip{background:#fff;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.25)}
   .logochip img{display:block;object-fit:contain}
-  .logochip.mark{height:48px;padding:3px 7px}
-  .logochip.mark img{height:42px;max-width:170px}
+  .logochip.mark{height:46px;padding:3px 7px}
+  .logochip.mark img{height:40px;max-width:170px}
   .logochip.ata{height:40px;padding:3px 6px}
   .logochip.ata img{height:34px;max-width:140px}
-  .partner{pointer-events:auto;margin-left:auto;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--muted);transition:.15s}
+  .partner{margin-left:auto;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--muted);transition:.15s}
   .partner:hover{color:var(--ink)}
   .partner span{font-size:11px;letter-spacing:.6px;text-transform:uppercase;font-weight:600;white-space:nowrap}
-  .rail{position:absolute;z-index:1000;top:78px;left:14px;width:236px;background:rgba(17,21,29,.93);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(8px);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100% - 100px)}
-  .rail h2{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin:0;padding:13px 14px 9px}
-  .rail .ops{overflow-y:auto;padding:0 8px 8px}
-  .filterbtn{margin:11px 10px 4px;padding:11px 12px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,rgba(202,164,78,.16),rgba(202,164,78,.05));border:1px solid rgba(202,164,78,.5);transition:.16s;color:var(--ink)}
-  .filterbtn:hover{background:linear-gradient(135deg,rgba(202,164,78,.26),rgba(202,164,78,.08))}
-  .filterbtn.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px rgba(202,164,78,.25)}
-  .filterbtn .ico{width:30px;height:30px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:#3a2c0d;background:radial-gradient(circle at 35% 30%,#fff7e6,#caa44e 60%,#7a5a1e)}
-  .filterbtn .ft{font-size:12.5px;font-weight:700;line-height:1.15}
-  .filterbtn .fs{font-size:10.5px;color:var(--accent2);margin-top:2px}
-  .datepop{position:absolute;z-index:1002;top:88px;left:264px;width:318px;max-width:calc(100vw - 286px);background:rgba(17,21,29,.96);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(8px);padding:14px;display:none}
-  .datepop.open{display:block}
-  .datepop .dh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-  .datepop h2{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin:0}
-  .datepop .clear{font-size:11.5px;color:var(--accent);cursor:pointer;white-space:nowrap}
-  .year{border-top:1px solid var(--line);padding-top:11px;margin-top:11px}
-  .year:first-of-type{border-top:0;padding-top:0;margin-top:0}
-  .year .yt{font-family:var(--serif);font-size:20px;line-height:1;color:var(--ink);margin-bottom:9px}
-  .months{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-  .month{height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-size:11.5px;cursor:pointer}
-  .month:hover{border-color:rgba(202,164,78,.65);color:var(--ink)}
-  .month.active{background:linear-gradient(135deg,#caa44e,#ffe9b0);border-color:#fff;color:#3a2c0d;font-weight:800}
-  .op{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:.15s;margin-bottom:2px}
-  .op:hover{background:var(--panel2)}
-  .op.active{background:var(--panel2);border-color:var(--accent)}
-  .op .lg{width:30px;height:30px;border-radius:7px;background:#fff;flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;font-weight:800;font-size:13px}
-  .op .lg img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-  .op .nm{font-size:12.5px;line-height:1.15;font-weight:600}
-  .op .ct{font-size:10.5px;color:var(--muted);margin-top:1px}
-  .op .dot{width:8px;height:8px;border-radius:50%;margin-left:auto;flex:0 0 auto;opacity:.9}
-  /* ---------- Ports filter ---------- */
-  .portpop{width:312px}
-  .portroles{display:flex;gap:5px;margin-bottom:10px}
-  .proll{flex:1;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-size:10.5px;cursor:pointer;padding:0 3px;transition:.14s}
-  .proll:hover{border-color:rgba(202,164,78,.6);color:var(--ink)}
-  .proll.active{background:linear-gradient(135deg,#caa44e,#ffe9b0);border-color:#fff;color:#3a2c0d;font-weight:800}
-  .portsearch{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;margin-bottom:9px}
-  .portsearch:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-  .portsearch::placeholder{color:var(--muted)}
-  .portlist{max-height:46vh;overflow-y:auto;margin:0 -4px;padding:0 4px}
-  .portrow{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;cursor:pointer;border:1px solid transparent;transition:.13s}
-  .portrow:hover{background:var(--panel2)}
-  .portrow.sel{background:var(--panel2);border-color:var(--accent)}
-  .portrow .pn{font-size:12.5px;font-weight:600;line-height:1.2}
-  .portrow .pb{font-size:10px;color:var(--muted);margin-top:2px}
-  .portrow .pc{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent2);background:rgba(202,164,78,.14);border:1px solid rgba(202,164,78,.32);border-radius:20px;padding:2px 8px;flex:0 0 auto}
-  .portempty{padding:16px 10px;color:var(--muted);font-size:12px;text-align:center}
-  .portpin{transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none}
-  .pp-dot{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7e6,#caa44e 60%,#7a5a1e);border:2px solid #fff;box-shadow:0 0 0 4px rgba(202,164,78,.32),0 4px 12px rgba(0,0,0,.6)}
-  .pp-lbl{margin-top:5px;white-space:nowrap;background:rgba(8,11,16,.92);border:1px solid var(--line);color:var(--ink);font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;letter-spacing:.2px}
-  .rail .reset{margin:6px 10px 12px;text-align:center;font-size:11.5px;color:var(--accent);cursor:pointer;padding:7px;border:1px dashed var(--line);border-radius:9px;display:none}
-  .rail .reset.show{display:block}
-  .panel{position:absolute;z-index:1001;top:0;right:0;height:100%;width:392px;max-width:92vw;background:linear-gradient(180deg,var(--panel),#080b10);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.55);transform:translateX(105%);transition:transform .32s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column}
+
+  /* filter rail */
+  .rail{position:absolute;z-index:900;top:80px;left:14px;width:288px;background:rgba(17,21,29,.94);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(8px);display:flex;flex-direction:column;max-height:calc(100% - 100px)}
+  .rail .rhead{display:flex;align-items:center;justify-content:space-between;padding:13px 14px 10px;border-bottom:1px solid var(--line)}
+  .rail .rhead h2{font-size:12px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin:0}
+  .rail .rhead .count{font-size:11.5px;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:700}
+  .rail .scroller{overflow-y:auto;padding:6px 12px 12px}
+  .searchwrap{position:relative;margin:10px 0 4px}
+  .search{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:13px}
+  .search::placeholder{color:var(--muted)}
+  .aclist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--panel2);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.45);overflow:hidden;display:none}
+  .aclist.open{display:block}
+  .acrow{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer;border-top:1px solid var(--line)}
+  .acrow:first-child{border-top:0}
+  .acrow:hover,.acrow.active{background:rgba(255,255,255,.06)}
+  .acrow .acsw{width:8px;height:8px;border-radius:50%;flex:none}
+  .acrow .acmain{font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .acrow .acsub{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+  .grp{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
+  .grp:first-of-type{border-top:0}
+  .grp .gh{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:5px 2px;user-select:none}
+  .grp .gh h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin:0;font-weight:700}
+  .grp .gh .chev{color:var(--muted);font-size:12px;transition:.2s}
+  .grp.collapsed .chev{transform:rotate(-90deg)}
+  .grp.collapsed .gbody{display:none}
+  .gbody{max-height:200px;overflow-y:auto;margin-top:4px;padding-right:2px}
+  .opt{display:flex;align-items:center;gap:9px;padding:5px 4px;border-radius:8px;cursor:pointer;font-size:12.5px;line-height:1.2}
+  .opt:hover{background:var(--panel2)}
+  .opt input{accent-color:var(--accent);width:14px;height:14px;flex:0 0 auto;margin:0}
+  .opt .sw{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+  .opt .blogo{width:20px;height:20px;border-radius:4px;flex:0 0 auto;object-fit:contain;background:#fff;padding:1px}
+  .opt .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .opt .ct{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+  .reset{margin:12px 2px 2px;text-align:center;font-size:12px;color:var(--accent);cursor:pointer;padding:9px;border:1px dashed var(--line);border-radius:9px}
+  .reset:hover{background:var(--panel2)}
+  .railtoggle{display:none!important}
+
+  /* detail panel */
+  .panel{position:absolute;z-index:1001;top:64px;right:0;height:calc(100% - 64px);width:392px;max-width:92vw;background:linear-gradient(180deg,var(--panel),#080b10);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.55);transform:translateX(105%);transition:transform .32s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column}
   .panel.open{transform:none}
   .panel .hero{position:relative;padding:24px 22px 18px;border-bottom:1px solid var(--line);background:radial-gradient(120% 120% at 80% 0%,rgba(202,164,78,.20),transparent 60%)}
   .panel .close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;font-size:15px}
-  .panel .klabel{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--accent)}
-  .panel h3{font-family:var(--serif);margin:7px 0 5px;font-size:27px;line-height:1.12;font-weight:600}
+  .panel .klabel{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent)}
+  .panel h3{font-family:var(--serif);margin:7px 0 6px;font-size:27px;line-height:1.12;font-weight:600}
   .panel .sub{font-size:12.5px;color:var(--muted)}
-  .panel .list{overflow-y:auto;padding:14px 16px 26px;flex:1}
-  .card{display:flex;align-items:center;gap:13px;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);margin-bottom:10px;text-decoration:none;color:var(--ink);transition:.16s;position:relative}
-  .card:hover{border-color:var(--accent);transform:translateY(-1px);background:#1d232f}
-  .card.routed{border-color:var(--accent);background:#1d232f;box-shadow:0 0 0 1px var(--accent),0 0 20px rgba(202,164,78,.30)}
-  .card.routed::before{content:"\25C9 On map";position:absolute;top:-9px;right:11px;font-size:9.5px;font-weight:800;letter-spacing:.04em;color:#3a2c0d;background:linear-gradient(135deg,#caa44e,#ffe9b0);padding:2px 8px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.45)}
-  .card .lg{width:48px;height:48px;border-radius:10px;background:#fff;flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;font-weight:800;font-size:15px}
-  .card .lg img{max-width:100%;max-height:100%;object-fit:contain}
-  .card .meta{min-width:0}
-  .card .meta .nm{font-size:14.5px;font-weight:700;line-height:1.18}
-  .card .meta .dt{font-size:12px;color:var(--accent2);margin-top:3px;font-variant-numeric:tabular-nums}
-  .card .meta .go{font-size:11.5px;color:var(--accent);margin-top:4px;display:flex;align-items:center;gap:5px}
-  .card .meta .rt{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.45}
-  .card .arrow{margin-left:auto;color:var(--muted);font-size:18px;flex:0 0 auto}
-  .rmarker{position:relative;transform:translate(-50%,-50%);cursor:pointer}
-  .rmarker .ring{width:var(--sz,34px);height:var(--sz,34px);border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(236,223,194,.95),rgba(202,164,78,.92) 58%,rgba(120,90,30,.92));border:2px solid rgba(255,255,255,.85);box-shadow:0 0 0 4px rgba(202,164,78,.22),0 5px 16px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#3a2c0d;transition:.18s}
-  .rmarker:hover .ring{transform:scale(1.12);box-shadow:0 0 0 6px rgba(202,164,78,.3),0 6px 18px rgba(0,0,0,.6)}
-  .rmarker.dim .ring{opacity:.2;filter:grayscale(.55)}
-  .rmarker.hit .ring{background:radial-gradient(circle at 35% 30%,#fff7e6,#ffe9b0 55%,#caa44e);border-color:#fff;box-shadow:0 0 0 5px rgba(236,223,194,.4),0 6px 18px rgba(0,0,0,.55)}
-  .rmarker .tag{position:absolute;left:50%;top:calc(var(--sz,34px) + 8px);transform:translateX(-50%);white-space:nowrap;background:rgba(8,11,16,.92);border:1px solid var(--line);color:var(--ink);font-size:11px;font-weight:600;padding:3px 8px;border-radius:7px;pointer-events:none;opacity:0;transition:.15s;letter-spacing:.2px}
-  .rmarker:hover .tag{opacity:1}
-  .hint{position:absolute;z-index:1000;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(17,21,29,.92);border:1px solid var(--line);border-radius:30px;padding:8px 18px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);backdrop-filter:blur(6px);max-width:92vw;text-align:center}
+  .panel .body{overflow-y:auto;padding:16px 20px 26px;flex:1}
+  .row{display:flex;gap:10px;font-size:13px;margin-bottom:10px}
+  .row .lk{color:var(--muted);min-width:74px;flex:0 0 auto;text-transform:uppercase;letter-spacing:.5px;font-size:10.5px;padding-top:2px}
+  .row .vl{color:var(--ink);line-height:1.4}
+  .quote{font-family:var(--serif);font-size:18px;line-height:1.35;color:var(--accent2);border-left:2px solid var(--accent);padding:2px 0 2px 12px;margin:0 0 15px}
+  .fitgrid{display:grid;grid-template-columns:1fr;gap:7px;margin:0 0 14px}
+  .fititem{border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.025);padding:8px 10px}
+  .fititem .fk{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:2px}
+  .fititem .fv{font-size:12.5px;color:var(--ink);line-height:1.35}
+  .ratingbadges{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+  .ratingbadge{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(202,164,78,.55);background:rgba(202,164,78,.12);color:var(--accent2);border-radius:999px;padding:5px 9px;font-size:11px;font-weight:700;line-height:1}
+  .ratingbadge .ri{color:var(--accent);font-size:12px;letter-spacing:1px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 14px}
+  .chip{font-size:11px;padding:4px 9px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);color:var(--accent2)}
+  .ups{list-style:none;padding:0;margin:6px 0 0}
+  .ups li{font-size:12.5px;color:var(--ink);padding:7px 0 7px 20px;border-bottom:1px solid rgba(42,51,64,.6);position:relative;line-height:1.35}
+  .ups li:before{content:'\2726';position:absolute;left:0;top:7px;color:var(--accent)}
+  .book{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;padding:12px;border-radius:11px;background:linear-gradient(135deg,#caa44e,#ffe9b0);color:#3a2c0d;font-weight:800;font-size:13.5px;text-decoration:none;letter-spacing:.3px}
+  .book:hover{filter:brightness(1.05)}
+  .pw{font-size:11.5px;color:var(--muted);text-align:center;margin-top:8px}
+  .pw b{color:var(--accent2);letter-spacing:1px}
+  .prog-logo{display:flex;align-items:center;gap:9px}
+  .prog-logo img{width:26px;height:26px;border-radius:5px;object-fit:contain;background:#fff;padding:2px;flex:0 0 auto}
+
+  .hint{position:absolute;z-index:800;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(17,21,29,.92);border:1px solid var(--line);border-radius:30px;padding:8px 18px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);backdrop-filter:blur(6px);max-width:92vw;text-align:center}
   .hint b{color:var(--ink)}
-  /* ---------- Route tracing (ported from Private Jet Atlas) ---------- */
-  .stopdot{transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7e6,#caa44e 65%,#7a5a1e);border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font:700 10px/1 var(--sans);color:#3a2c0d}
-  .seatri{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #e9cf86;filter:drop-shadow(0 1px 2px rgba(0,0,0,.65))}
-  .leaflet-tooltip.stoptip{background:rgba(8,11,16,.94);border:1px solid var(--line);color:var(--ink);font:600 11.5px var(--sans);padding:3px 8px;border-radius:7px;box-shadow:0 3px 10px rgba(0,0,0,.55)}
-  .leaflet-tooltip.stoptip:before{border-top-color:rgba(8,11,16,.94)}
-  .rmarker.route .ring{background:radial-gradient(circle at 35% 30%,#fff7e6,#ffe9b0 55%,#caa44e);border-color:#fff;box-shadow:0 0 0 5px rgba(236,223,194,.4),0 6px 18px rgba(0,0,0,.55);transform:scale(1.08)}
-  .card .tracebtn{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:6px 11px;border-radius:9px;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--accent);background:rgba(202,164,78,.10);border:1px solid rgba(202,164,78,.45);-webkit-tap-highlight-color:transparent;transition:.15s}
-  .card .tracebtn:hover{background:rgba(202,164,78,.20);border-color:var(--accent)}
-  .card .tracebtn:active{transform:scale(.97)}
-  body.tracing .rmarker{opacity:.28;transition:opacity .3s ease}
-  body.tracing .rmarker:hover{opacity:.85}
-  body.tracing .rmarker.route{opacity:1}
-  #routeBack{display:none;position:absolute;z-index:1200;left:50%;bottom:84px;transform:translateX(-50%);align-items:center;gap:7px;padding:10px 17px;border-radius:30px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink);background:var(--panel2);border:1px solid var(--line);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-  @media (max-width:640px){body.tracing .panel.open{transform:translateX(102%) !important}body.tracing #routeBack{display:inline-flex}}
-  .leaflet-popup,.leaflet-control-attribution{font-family:var(--sans)}
-  .leaflet-bottom.leaflet-left{bottom:18px;left:14px}
-  .leaflet-bar{border:1px solid var(--line);box-shadow:var(--shadow)}
-  .leaflet-bar a{background:var(--panel2);color:var(--ink);border-bottom-color:var(--line)}
-  .leaflet-bar a:hover{background:#1d232f}
-  @media (max-width:640px){.rail{display:block;top:70px;left:12px;right:12px;width:auto;max-height:none;background:transparent;border:0;box-shadow:none;backdrop-filter:none}.rail h2,.rail .ops,.rail .reset{display:none}.filterbtn{margin:0;background:rgba(17,21,29,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}.datepop{left:12px;right:12px;top:132px;width:auto;max-width:none}.panel{width:100%}.topbar p{display:none}.partner span{display:none}.logochip.mark{height:42px}.logochip.mark img{height:30px;max-width:120px}.hint{display:none}.leaflet-bottom.leaflet-left{bottom:18px}}
+
+  /* loading / error overlay */
+  .veil{position:absolute;inset:64px 0 0 0;z-index:1200;display:flex;align-items:center;justify-content:center;background:radial-gradient(60% 60% at 50% 40%,#0e131b,#06080c);text-align:center;padding:30px}
+  .veil .box{max-width:520px}
+  .veil h2{font-family:var(--serif);font-size:30px;margin:0 0 12px;color:var(--ink)}
+  .veil p{color:var(--muted);font-size:14px;line-height:1.6;margin:8px 0}
+  .veil code{background:#0a0d13;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--accent2);font-size:12.5px}
+  .veil a{color:var(--accent)}
+  .spinner{width:34px;height:34px;border:3px solid rgba(202,164,78,.25);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 18px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hidden{display:none!important}
+
+  @media (max-width:680px){
+    .topbar{height:58px;padding:8px 12px;gap:10px}
+    gmp-map-3d{top:58px;height:calc(100% - 58px)}
+    .topbar h1{font-size:18px}.topbar h1 .bev{display:none}
+    .topbar p,.partner span{display:none}
+    .logochip.mark{height:40px}.logochip.mark img{height:30px;max-width:120px}
+    .veil{inset:58px 0 0 0}.panel{top:58px;height:calc(100% - 58px);width:100%;max-width:100%}
+    .hint{display:none}
+  }
 </style>
 </head>
 <body>
-<div id="map"></div>
+
 <div class="topbar">
   <div class="brand">
     <a class="logochip mark" href="https://www.expeditionbucketlist.com" target="_blank" rel="noopener"><img src="https://images.squarespace-cdn.com/content/57d86bcd46c3c49c625850a1/54c90494-d588-412d-9643-5d5650d856fd/ebl+2026+Gemini.png?content-type=image%2Fpng" alt="Expedition Bucket List"></a>
     <div>
-      <h1>Luxury Hotel Yacht <span>Atlas</span><a class="bev" href="https://bevvip.com" target="_blank" rel="noopener"> - BeVvip.com</a></h1>
-      <p>Explore luxury hotel brand yachts by region &middot; tap a pin to see every sailing</p>
+      <h1>Luxury Hotel <span>Atlas</span><a class="bev" href="https://bevvip.com" target="_blank" rel="noopener"> - BeVvip.com</a></h1>
+      <p>2,500 luxury hotel brand stays in photorealistic 3D &middot; filter &amp; tap a pin</p>
     </div>
   </div>
   <a class="partner" href="https://www.aspentraveladvisors.com" target="_blank" rel="noopener">
@@ -151,490 +142,582 @@
     <div class="logochip ata"><img src="https://images.squarespace-cdn.com/content/v1/57d86bcd46c3c49c625850a1/8c7b524b-9951-4a51-aaf2-44982357ccfe/ATA+logo+clear+2025+black.png?format=750w" alt="Aspen Travel Advisors"></div>
   </a>
 </div>
-<aside class="rail">
-  <div class="filterbtn" id="dateBtn">
-    <div class="ico">&#128197;</div>
-    <div>
-      <div class="ft">Date Range</div>
-      <div class="fs" id="dateSummary">All sailings</div>
-    </div>
+
+<style>
+  /* active deep-link filter chips */
+  .activeFilters{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+  .afchip{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    font-family:var(--sans,inherit);font-size:12px;font-weight:600;letter-spacing:.2px;
+    color:#11151d;background:var(--accent,#caa44e);border:none;border-radius:30px;padding:5px 11px;line-height:1}
+  .afchip span{font-size:14px;opacity:.8}
+  .afchip:hover{filter:brightness(1.06)}
+</style>
+
+<!-- filter rail -->
+<aside class="rail collapsed-none" id="rail">
+  <div class="railtoggle" id="railToggle">&#9776;&nbsp; Filters &amp; results</div>
+  <div class="rhead">
+    <h2>Filters</h2>
+    <div class="count"><span id="count">2,500</span> shown</div>
   </div>
-  <div class="filterbtn" id="portBtn">
-    <div class="ico">&#9875;</div>
-    <div>
-      <div class="ft">Ports</div>
-      <div class="fs" id="portSummary">All ports</div>
+  <div class="scroller">
+    <div class="searchwrap">
+      <input class="search" id="search" type="text" placeholder="Search hotel or city&hellip;" autocomplete="off">
+      <div class="aclist" id="aclist"></div>
     </div>
+    <div class="activeFilters" id="activeFilters" style="display:none"></div>
+    <div class="grp" data-grp="cat"><div class="gh"><h3>Category</h3><span class="chev">&#9660;</span></div><div class="gbody" id="grp-cat"></div></div>
+    <div class="grp collapsed" data-grp="brand"><div class="gh"><h3>Brand / Program</h3><span class="chev">&#9660;</span></div><div class="gbody" id="grp-brand"></div></div>
+    <div class="grp collapsed" data-grp="country"><div class="gh"><h3>Country</h3><span class="chev">&#9660;</span></div><div class="gbody" id="grp-country"></div></div>
+    <div class="reset" id="reset">Reset all filters</div>
   </div>
-  <h2>Filter by yacht brand</h2>
-  <div class="ops" id="opList"></div>
-  <div class="reset" id="reset">&#10005; Clear filter</div>
 </aside>
-<div class="datepop" id="datePop">
-  <div class="dh">
-    <h2>Filter by departure month</h2>
-    <div class="clear" id="dateClear">Clear dates</div>
-  </div>
-  <div id="dateGrid"></div>
-</div>
-<div class="datepop portpop" id="portPop">
-  <div class="dh">
-    <h2>Filter by port</h2>
-    <div class="clear" id="portClear">Clear port</div>
-  </div>
-  <div class="portroles" id="portRoles">
-    <button type="button" class="proll active" data-role="any">All</button>
-    <button type="button" class="proll" data-role="embark">Embark</button>
-    <button type="button" class="proll" data-role="disembark">Disembark</button>
-    <button type="button" class="proll" data-role="call">Day&nbsp;visits</button>
-  </div>
-  <input id="portSearch" class="portsearch" type="search" placeholder="Search ports&hellip;" autocomplete="off">
-  <div class="portlist" id="portList"></div>
-</div>
+
+<!-- detail panel -->
 <section class="panel" id="panel">
   <div class="hero">
-    <button class="close" id="close">&#10005;</button>
-    <div class="klabel">Luxury yacht region</div>
-    <h3 id="pTitle">Region</h3>
-    <div class="sub" id="pSub"></div>
+    <button class="close" id="close">&times;</button>
+    <div class="klabel" id="d-cat">Hotel</div>
+    <h3 id="d-name">Hotel</h3>
+    <div class="sub" id="d-loc">&mdash;</div>
   </div>
-  <div class="list" id="pList"></div>
+  <div class="body">
+    <div class="quote" id="d-desc" style="display:none"></div>
+    <div class="ratingbadges" id="d-ratings" style="display:none"></div>
+    <div class="fitgrid" id="d-fitgrid" style="display:none">
+      <div class="fititem"><div class="fk">Best Fit</div><div class="fv" id="d-bestfit">—</div></div>
+      <div class="fititem"><div class="fk">Service Style</div><div class="fv" id="d-service">—</div></div>
+    </div>
+    <div class="chips" id="d-chips"></div>
+    <div class="row"><div class="lk">Address</div><div class="vl" id="d-addr">&mdash;</div></div>
+    <div class="row"><div class="lk">Program</div><div class="vl" id="d-prog">&mdash;</div></div>
+    <div class="klabel" style="margin:6px 0 2px">VIP Upgrades</div>
+    <ul class="ups" id="d-ups"></ul>
+    <a class="book" id="d-book" href="#" target="_blank" rel="noopener">Book VIP upgrades online &rarr;</a>
+    <div class="pw" id="d-pw"></div>
+  </div>
 </section>
-<script src="vendor/leaflet.min.js"></script>
+
+<div class="hint" id="hint"><b>Drag</b> to orbit &middot; <b>scroll</b> to zoom &middot; <b>tap</b> a pin for VIP details</div>
+
+<!-- veil: loading + setup help -->
+<div class="veil" id="veil">
+  <div class="box" id="veilLoad">
+    <div class="spinner"></div>
+    <h2>Loading the Atlas&hellip;</h2>
+    <p>Rendering photorealistic 3D terrain and 2,500 luxury stays.</p>
+  </div>
+  <div class="box hidden" id="veilErr">
+    <h2>Add your Google Maps key</h2>
+    <p>The 3D map needs a Google Maps Platform API key with the <b>Maps JavaScript API</b> and <b>Map Tiles API</b> enabled (billing on).</p>
+    <p>In Vercel, open <b>Project → Settings → Environment Variables</b>, add <code>GOOGLE_MAPS_API_KEY</code> with your key, then redeploy.</p>
+    <p style="margin-top:14px"><a href="https://console.cloud.google.com/google/maps-apis/credentials" target="_blank" rel="noopener">Get a key &rarr;</a> &middot; <a href="https://developers.google.com/maps/documentation/javascript/3d-maps-overview" target="_blank" rel="noopener">3D Maps docs &rarr;</a></p>
+  </div>
+</div>
+
 <script>
-  // ── DATA LOADING ─────────────────────────────────────────────────────────
-  let BRANDS, REGIONS, TRIPS, PORTS;
-  const _dataReady = fetch('itinerary.json')
-    .then(r => r.json())
-    .then(d => {
-      BRANDS = d.BRANDS;
-      REGIONS = d.REGIONS;
-      TRIPS = d.TRIPS;
-      PORTS = d.PORTS || {};
-    });
-  
-;
-;
-;
-function logoEl(brandKey){
-  const m=BRANDS[brandKey]||{short:brandKey,domain:'',color:'#26506e'};
-  const wrap=document.createElement('div');wrap.className='lg';
-  function fallback(){wrap.innerHTML='';wrap.style.background=m.color;wrap.style.color='#fff';wrap.textContent=(m.short.match(/[A-Za-z]/g)||['?']).slice(0,2).join('').toUpperCase();}
-  if(!m.domain){fallback();return wrap;}
-  const sources=['logos/'+m.domain+'.png','https://www.google.com/s2/favicons?sz=128&domain='+m.domain,'https://icons.duckduckgo.com/ip3/'+m.domain+'.ico'];
-  const img=document.createElement('img');img.loading='lazy';img.alt=m.short;let i=0;
-  img.onerror=function(){if(i<sources.length){img.src=sources[i++];}else{fallback();}};
-  img.onload=function(){if(img.naturalWidth<8){img.onerror();}};
-  img.src=sources[i++];wrap.appendChild(img);return wrap;
+/* ============================================================
+   CONFIG — the Google Maps key is NOT stored here. It is held in
+   a Vercel environment variable (GOOGLE_MAPS_API_KEY) and served
+   at runtime by /api/config so it never enters the git repo.
+   Requires: Maps JavaScript API + Map Tiles API (billing enabled).
+   ============================================================ */
+let API_KEY = "";
+async function fetchKey(){
+  try{
+    const r = await fetch("/api/config", { cache:"no-store" });
+    if(r.ok){ const j = await r.json(); API_KEY = (j && j.apiKey) || ""; }
+  }catch(e){ /* leave API_KEY empty -> setup overlay shows */ }
 }
-_dataReady.then(() => {
-const byRegion={};
-TRIPS.forEach(t=>t.g.forEach(k=>{(byRegion[k]=byRegion[k]||[]).push(t);}));
-Object.values(byRegion).forEach(arr=>arr.sort((a,b)=>a.dates.localeCompare(b.dates)||a.title.localeCompare(b.title)));
-const map=L.map('map',{worldCopyJump:true,minZoom:2,maxZoom:8,zoomControl:false}).setView([27,-25],2.35);
-function stabilizeMap(){map.invalidateSize(false);}
-setTimeout(stabilizeMap,120);
-setTimeout(stabilizeMap,700);
-window.addEventListener('resize',stabilizeMap);
-L.control.zoom({position:'bottomleft'}).addTo(map);
-window.__atlasMap=map;
-const baseLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics &middot; Sailings: Brian Harris / Virtuoso',maxZoom:8});
-baseLayer.addTo(map);
 
-/* ===== Stops + route tracing (ported from Private Jet Atlas) =====
-   Each trip's stops come from a future day-by-day `ports` array if present,
-   otherwise fall back to [from, to]. Names resolve to coords via PORTS. */
-/* Ordered itinerary entries: port = {n,ll,day}; sea day = {sea:true}.
-   Uses day-by-day `itin` if present, else falls back to [from,to]. */
-function tripStops(t){
-  if(t.itin&&t.itin.length){
-    return t.itin.map(e=> e.s ? {sea:true} : {n:e.n, ll:PORTS[e.n], day:e.d})
-                 .filter(e=> e.sea || e.ll);
-  }
-  return [t.from,t.to].map(n=>({n:(n||'').trim(), ll:PORTS[(n||'').trim()]})).filter(e=>e.ll);
+const CAT_COLORS = {
+  "City Hotel":"#5b8dd6","Resort / Leisure":"#caa44e","Spa / Wellness Resort":"#6fb38a",
+  "Beach Resort":"#e0a96d","Lodge / Safari":"#b07a45","Villas / Residences":"#c178a6",
+  "Island Resort":"#4fb0b0","Mountain / Ski":"#9fb1c8"
+};
+
+/* Brand / Program → domain for logo lookup */
+const BRAND_DOMAINS = {
+  "Virtuoso":"virtuoso.com",
+  "Marriott STARS":"marriott.com",
+  "Four Seasons Preferred Partner":"fourseasons.com",
+  "Hilton for Luxury":"hilton.com",
+  "Auberge Resorts Collection":"aubergeresorts.com",
+  "Mandarin Oriental Fan Club":"mandarinoriental.com",
+  "Shangri-La The Luxury Circle":"shangri-la.com",
+  "Rosewood Elite":"rosewoodhotels.com",
+  "Cadence Individual Partner":"cadencetravel.com",
+  "Belmond Bellini Club":"belmond.com",
+  "Kempinski Club 1897":"kempinski.com",
+  "The Peninsula Pen Club":"peninsula.com",
+  "Rocco Forte Knights":"roccofortehotels.com",
+  "Relais & Châteaux":"relaischateaux.com",
+  "Jumeirah Passport to Luxury":"jumeirah.com",
+  "Canaves Oia Luxury Resorts":"canavesthe.com",
+  "Oetker Collection":"oetkercollection.com",
+  "Maybourne Illustrated":"maybourne.com",
+  "Autograph Collection":"autographhotels.marriott.com",
+  "Outrigger":"outrigger.com",
+  "Ritz-Carlton Reserve":"ritzcarlton.com",
+  "Hartling Group (The Palms / The Shore Club / The Sands)":"thepalms.tc",
+  "Fairmont":"fairmont.com",
+  "Doyle Collection (The Circle)":"doylecollection.com",
+  "Gran Meliá":"granmelia.com",
+  "Waldorf Astoria":"waldorfastoria.hilton.com",
+  "Ted Turner Reserves":"tedturnerreserves.com",
+  "Design Hotels":"designhotels.com",
+  "Hyatt Privé":"hyatt.com",
+  "Thompson Hotels":"thompsonhotels.com",
+  "Angsana":"angsana.com",
+  "Grecotel":"grecotel.com",
+  "Gurney's":"gurneysresorts.com",
+  "Viceroy":"viceroyhotelsandresorts.com",
+  "Langham":"langhamhotels.com",
+  "Al Zorah":"alzorah.ae",
+  "Taj Hotels":"tajhotels.com",
+  "Corinthia":"corinthia.com",
+};
+
+function brandLogo(program){
+  const domain = BRAND_DOMAINS[program];
+  if(!domain) return null;
+  return `https://logo.clearbit.com/${domain}`;
 }
-function portCoords(t){ return tripStops(t).filter(e=>e.ll).map(e=>e.ll); }
-function isTraceable(t){
-  const c=portCoords(t);
-  return c.length>=2 && c.some(x=>x[0]!==c[0][0]||x[1]!==c[0][1]);
+function brandLogoFallback(img, program){
+  const domain = BRAND_DOMAINS[program];
+  if(!domain){ img.style.display="none"; return; }
+  img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  img.onerror = ()=>{ img.style.display="none"; };
 }
-/* screen heading (deg) for a north-pointing triangle so its apex faces P->Q */
-function headingDeg(P,Q){
-  const latMid=(P[0]+Q[0])/2*Math.PI/180;
-  const dx=(Q[1]-P[1])*Math.cos(latMid), dy=(Q[0]-P[0]);
-  return Math.atan2(dx,dy)*180/Math.PI;
-}
-let pinnedTrip=null, routeLocked=false;
-const routeLayer=L.layerGroup().addTo(map);
-function clearRoute(){ routeLayer.clearLayers(); Object.values(markers).forEach(o=>o.el.classList.remove('route')); markRoutedCard(null); }
-function markRoutedCard(trip,scroll){
-  let hit=null;
-  document.querySelectorAll('.card').forEach(c=>{ const on=trip&&c._trip===trip; c.classList.toggle('routed',on); if(on)hit=c; });
-  if(hit&&scroll) hit.scrollIntoView({block:'nearest',behavior:'smooth'});
-}
-function unroll(coords){ const out=[coords[0].slice()]; for(let i=1;i<coords.length;i++){ let la=coords[i][0],lo=coords[i][1]; const prevLo=out[i-1][1]; while(lo-prevLo>180)lo-=360; while(lo-prevLo<-180)lo+=360; out.push([la,lo]); } return out; }
-function arcPts(a,b){ const la1=a[0],lo1=a[1],la2=b[0],lo2=b[1]; const mx=(lo1+lo2)/2,my=(la1+la2)/2,dx=lo2-lo1,dy=la2-la1; const k=0.16; const cx=mx-dy*k,cy=my+dx*k; const p=[]; for(let t=0;t<=1.0001;t+=0.04){ const x=(1-t)*(1-t)*lo1+2*(1-t)*t*cx+t*t*lo2; const y=(1-t)*(1-t)*la1+2*(1-t)*t*cy+t*t*la2; p.push([y,x]); } return p; }
-function drawRoute(trip,fit){
-  clearRoute();
-  const entries=tripStops(trip);
-  const ports=entries.filter(e=>e.ll);
-  if(ports.length<2) return;
-  const lls=unroll(ports.map(e=>e.ll));          // unrolled port coords
-  const legArcs=[];
-  for(let i=0;i<lls.length-1;i++){
-    const pts=arcPts(lls[i],lls[i+1]); legArcs.push(pts);
-    L.polyline(pts,{color:'#3a2c0d',weight:6,opacity:.22,lineCap:'round'}).addTo(routeLayer);
-    L.polyline(pts,{color:'#e9cf86',weight:2.2,opacity:.95,lineCap:'round',dashArray:'1 7'}).addTo(routeLayer);
-  }
-  // numbered port dots, tooltip shows the day + port
-  ports.forEach((e,i)=>{
-    const dot=L.divIcon({className:'',html:'<div class="stopdot">'+(i+1)+'</div>',iconSize:[0,0]});
-    const lbl=(e.day?('Day '+e.day+' · '):'')+e.n;
-    L.marker(lls[i],{icon:dot,riseOnHover:true}).addTo(routeLayer)
-      .bindTooltip((i+1)+'. '+lbl,{direction:'top',offset:[0,-9],className:'stoptip',opacity:1});
+const catColor = c => CAT_COLORS[c] || "#caa44e";
+
+let FEATURES=[], MARKERS=[], map3d, PinElementClass, SELECTED=null;
+const state={ cats:new Set(), brands:new Set(), countries:new Set(), q:"",
+  brand:null, region:null, ids:new Set() };  // brand/region/ids arrive via deep link
+
+/* ---- bootstrap loader for Google Maps JS ---- */
+function loadMaps(){
+  return new Promise((res,rej)=>{
+    if(!API_KEY){ rej("nokey"); return; }
+    ((g)=>{let h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});let d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{a=m.createElement("script");e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:API_KEY, v:"beta"});
+    res();
   });
-  // sea days -> count per leg (between consecutive ports)
-  const legSeas={}; let portIdx=-1;
-  entries.forEach(e=>{
-    if(e.ll){ portIdx++; }
-    else if(portIdx>=0 && portIdx<lls.length-1){ legSeas[portIdx]=(legSeas[portIdx]||0)+1; }
-  });
-  // place a triangle per sea day along its leg, apex pointing toward the next port
-  Object.keys(legSeas).forEach(key=>{
-    const li=+key, pts=legArcs[li], k=legSeas[li];
-    for(let j=0;j<k;j++){
-      const f=(j+1)/(k+1);
-      const idx=Math.min(pts.length-2, Math.max(1, Math.round(f*(pts.length-1))));
-      const deg=headingDeg(pts[idx],pts[idx+1]);
-      const tri=L.divIcon({className:'',html:'<div class="seatri" style="transform:translate(-50%,-50%) rotate('+deg.toFixed(1)+'deg)"></div>',iconSize:[0,0]});
-      L.marker(pts[idx],{icon:tri,interactive:false,keyboard:false}).addTo(routeLayer);
+}
+
+async function init(){
+  await fetchKey();
+  try{ await loadMaps(); }
+  catch(e){ showError(); return; }
+  try{
+    const {Map3DElement, MapMode} = await google.maps.importLibrary("maps3d");
+    const markerLib = await google.maps.importLibrary("marker");
+    PinElementClass = markerLib.PinElement;
+
+    map3d = new Map3DElement({
+      center:{lat:18.2, lng:-66.5, altitude:0},
+      range:15000000, tilt:0, heading:0,
+      mode: MapMode.HYBRID
+    });
+    document.body.appendChild(map3d);
+
+    // Allow single-finger pan on mobile and scroll-to-zoom without Ctrl on desktop
+    try { map3d.gestureHandling = 'greedy'; } catch(e) {}
+    window.addEventListener('wheel', e => {
+      if(map3d && (e.target === map3d || map3d.contains(e.target))){
+        e.preventDefault();
+      }
+    }, {passive:false, capture:true});
+
+    FEATURES = await loadInventory();
+    buildFilters();
+    applyDeepLink();           // read ?region/brand/program/category/country/ids/q
+    await buildMarkers();      // ends with applyFilters(), so the subset is live
+    fitToResults();            // frame the map to the deep-linked subset
+    highlightDeepLinkIds();    // enlarge (and, if single, open) any ids
+    document.getElementById("veil").classList.add("hidden");
+    // tell an embedding app (Base Camp) the atlas is warm and ready for filters
+    try{ if(window.parent && window.parent!==window) window.parent.postMessage({type:"ATLAS_READY"}, "*"); }catch(_){}
+  }catch(e){ console.error(e); showError(); }
+}
+
+function showError(){
+  document.getElementById("veilLoad").classList.add("hidden");
+  document.getElementById("veilErr").classList.remove("hidden");
+}
+
+/* ---- inventory load (single source of truth: /api/luxury-hotels) ---- */
+async function loadInventory(){
+  // Primary path: the shared data layer behind /api, paginated to the 200 cap.
+  // Falls back to the bundled hotels.geojson if the endpoint is unreachable so
+  // the atlas still renders. The API returns normalized records, which we adapt
+  // back into the GeoJSON-feature shape the rest of this file expects.
+  try{
+    const PAGE=200; let offset=0, total=Infinity; const out=[];
+    while(offset<total){
+      const r=await fetch(`/api/luxury-hotels?limit=${PAGE}&offset=${offset}`,{cache:"no-store"});
+      if(!r.ok) throw new Error("api "+r.status);
+      const j=await r.json();
+      total=j.total||0;
+      for(const h of (j.results||[])) out.push(toFeature(h));
+      if(!j.results || !j.results.length) break;
+      offset+=j.results.length;
     }
-  });
-  (trip.g||[]).forEach(k=>{ if(markers[k]) markers[k].el.classList.add('route'); });
-  markRoutedCard(trip,fit);
-  if(fit){
-    const small=window.matchMedia('(max-width:640px)').matches;
-    const panelOpen=document.getElementById('panel').classList.contains('open');
-    const padR=(!small&&panelOpen)?420:70;
-    map.fitBounds(L.latLngBounds(lls),{paddingTopLeft:[70,90],paddingBottomRight:[padR,70],maxZoom:6,animate:true,duration:.8});
+    if(out.length) return out;
+    throw new Error("api returned no records");
+  }catch(err){
+    console.warn("luxury-hotels API unavailable, falling back to hotels.geojson:",err);
+    const data=await fetch("hotels.geojson").then(r=>r.json());
+    return data.features;
+  }
+}
+function toFeature(h){
+  // Map normalized record -> legacy GeoJSON feature. Note region maps from
+  // adminRegion (the sub-national value the UI displays and searches); the
+  // marquee key is kept separately as marqueeRegion.
+  return {
+    type:"Feature",
+    geometry:{type:"Point",coordinates:[h.lng,h.lat]},
+    properties:{
+      id:h.id, name:h.name, brand:h.brand, program:h.program,
+      category:h.category, country:h.country, city:h.city,
+      region:h.adminRegion, marqueeRegion:h.region,
+      address:h.address, upgrades:h.vipUpgrades,
+      bookUrl:h.bookUrl, password:h.bookPassword,
+      fit:h.fit||null
+    }
+  };
+}
+
+/* ---- deep-link intake (chat-to-map handoff, SPEC §7) ---- */
+// Driven either by the URL (on load) or by a live postMessage from Base Camp
+// (the Guide embeds this atlas and pushes filters without reloading).
+function applyDeepLink(){
+  const sp=new URLSearchParams(location.search);
+  applyParams(k=>{const v=sp.get(k);return v==null?"":String(v).trim();});
+}
+function applyParams(val){
+  // checkbox-backed axes: tick the matching option so the UI reflects the filter
+  const tick=(grpId,setName,v)=>{
+    if(!v) return;
+    const want=v.toLowerCase();
+    document.querySelectorAll(`#${grpId} .opt`).forEach(l=>{
+      const nm=l.querySelector(".nm"); if(!nm) return;
+      if(nm.textContent.toLowerCase()===want){
+        const cb=l.querySelector("input"); if(cb){cb.checked=true; state[setName].add(nm.textContent);}
+      }
+    });
+  };
+  tick("grp-cat","cats",val("category"));
+  tick("grp-brand","brands",val("program"));   // UI "Brand / Program" axis is program
+  tick("grp-country","countries",val("country"));
+  const q=val("q");
+  if(q){ const s=document.getElementById("search"); if(s) s.value=q; state.q=q.toLowerCase(); }
+  // deep-link-only axes (no checkbox UI): brand=actual brand, region=marquee key
+  if(val("brand")) state.brand=val("brand");
+  if(val("region")) state.region=val("region");
+  const ids=val("ids");
+  if(ids) String(ids).split(",").map(s=>s.trim()).filter(Boolean).forEach(id=>state.ids.add(id));
+  renderActiveChips();
+}
+// Clear every active filter without touching the URL/history (used before
+// applying an external filter pushed by the embedding app).
+function clearAllFilters(){
+  state.cats.clear();state.brands.clear();state.countries.clear();state.q="";
+  state.brand=null;state.region=null;state.ids.clear();
+  document.querySelectorAll(".opt input").forEach(c=>c.checked=false);
+  const s=document.getElementById("search"); if(s) s.value="";
+}
+// Live re-filter from a Base Camp message: reset, apply, re-frame, highlight.
+function applyExternalFilter(params){
+  clearAllFilters();
+  for(const m of MARKERS){ if(m._pin){ try{ m._pin.scale=0.7; }catch(_){} } }
+  SELECTED=null;
+  applyParams(k=>{const v=params&&params[k];return v==null?"":String(v).trim();});
+  applyFilters(); fitToResults(); highlightDeepLinkIds();
+}
+window.addEventListener("message",(e)=>{
+  const d=e&&e.data;
+  if(d && d.type==="BASECAMP_FILTER") applyExternalFilter(d.params||{});
+});
+function renderActiveChips(){
+  const box=document.getElementById("activeFilters"); if(!box) return;
+  const chips=[];
+  if(state.brand) chips.push(["Brand: "+state.brand,()=>{state.brand=null;}]);
+  if(state.region) chips.push(["Region: "+state.region,()=>{state.region=null;}]);
+  if(state.ids.size) chips.push(["Shortlist: "+state.ids.size,()=>{state.ids.clear();}]);
+  box.innerHTML="";
+  if(!chips.length){ box.style.display="none"; return; }
+  box.style.display="";
+  for(const [label,clear] of chips){
+    const c=document.createElement("button"); c.type="button"; c.className="afchip";
+    c.innerHTML=label+' <span aria-hidden="true">&times;</span>';
+    c.setAttribute("aria-label","Remove filter "+label);
+    c.addEventListener("click",()=>{ clear(); renderActiveChips(); applyFilters(); fitToResults(); });
+    box.appendChild(c);
+  }
+}
+function fitToResults(){
+  if(!map3d) return;
+  const shown=FEATURES.filter(matches);
+  if(!shown.length || shown.length===FEATURES.length) return; // keep default world view
+  let minLa=90,maxLa=-90,minLo=180,maxLo=-180;
+  for(const f of shown){ const [lo,la]=f.geometry.coordinates;
+    if(la<minLa)minLa=la; if(la>maxLa)maxLa=la; if(lo<minLo)minLo=lo; if(lo>maxLo)maxLo=lo; }
+  const cLat=(minLa+maxLa)/2, cLng=(minLo+maxLo)/2;
+  const span=Math.max(maxLa-minLa,(maxLo-minLo)*Math.cos(cLat*Math.PI/180));
+  let range=Math.min(Math.max(span*111000*2.2, 4000), 12000000);
+  try{ map3d.center={lat:cLat,lng:cLng,altitude:0}; map3d.range=range; map3d.tilt=span>8?0:45; map3d.heading=0; }catch(_){}
+}
+function highlightDeepLinkIds(){
+  if(!state.ids.size) return;
+  const hit=MARKERS.filter(m=>state.ids.has(m._feat.properties.id));
+  for(const m of hit){ if(m._pin) try{ m._pin.scale=1.25; }catch(_){} }
+  if(hit.length===1) openDetail(hit[0]._feat);  // single shortlist -> open it
+}
+
+/* ---- markers ---- */
+async function buildMarkers(){
+  const {Marker3DInteractiveElement, AltitudeMode} = await google.maps.importLibrary("maps3d");
+  for(const f of FEATURES){
+    const [lng,lat]=f.geometry.coordinates;
+    const m=new Marker3DInteractiveElement({
+      position:{lat,lng,altitude:12},
+      altitudeMode:AltitudeMode.RELATIVE_TO_MESH
+    });
+    try{
+      const pin=new PinElementClass({background:catColor(f.properties.category),borderColor:"#fffaf0",glyphColor:"#fffaf0",scale:0.7});
+      m.append(pin); m._pin=pin;
+    }catch(_){}
+    m.addEventListener("gmp-click",()=>openDetail(f));
+    m._feat=f;
+    m._pos={lat,lng,altitude:12};
+    MARKERS.push(m);
+  }
+  // append in chunks so the UI stays responsive
+  let i=0;
+  function chunk(){
+    const end=Math.min(i+250,MARKERS.length);
+    for(;i<end;i++) map3d.append(MARKERS[i]);
+    if(i<MARKERS.length) requestAnimationFrame(chunk);
+  }
+  chunk();
+  applyFilters();
+}
+
+/* ---- filters ---- */
+function counts(key){
+  const m={};
+  for(const f of FEATURES){ const v=f.properties[key]||"—"; m[v]=(m[v]||0)+1; }
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+function buildFilters(){
+  // category (with color swatch), sorted by count
+  const cat=document.getElementById("grp-cat");
+  for(const [v,n] of counts("category")){
+    cat.appendChild(optRow("cats",v,n,catColor(v)));
+  }
+  const brand=document.getElementById("grp-brand");
+  for(const [v,n] of counts("program")){ brand.appendChild(optRow("brands",v,n,null,v)); }
+  const country=document.getElementById("grp-country");
+  for(const [v,n] of counts("country")){ country.appendChild(optRow("countries",v,n)); }
+
+  document.querySelectorAll(".grp .gh").forEach(h=>h.addEventListener("click",()=>h.parentElement.classList.toggle("collapsed")));
+  const sIn=document.getElementById("search");
+  sIn.addEventListener("input",e=>{state.q=e.target.value.toLowerCase().trim();applyFilters();renderAC();});
+  sIn.addEventListener("focus",renderAC);
+  document.addEventListener("click",e=>{ if(!e.target.closest(".searchwrap")) document.getElementById("aclist").classList.remove("open"); });
+  document.getElementById("reset").addEventListener("click",resetFilters);
+  document.getElementById("close").addEventListener("click",()=>document.getElementById("panel").classList.remove("open"));
+  /* railToggle no longer used — dock pills handle mobile toggle */
+}
+function optRow(setName,val,n,sw,program){
+  const l=document.createElement("label"); l.className="opt";
+  const cb=document.createElement("input"); cb.type="checkbox";
+  cb.addEventListener("change",()=>{ cb.checked?state[setName].add(val):state[setName].delete(val); applyFilters(); });
+  l.appendChild(cb);
+  if(sw){ const s=document.createElement("span"); s.className="sw"; s.style.background=sw; l.appendChild(s); }
+  if(program && BRAND_DOMAINS[program]){
+    const img=document.createElement("img"); img.className="blogo";
+    img.src=`https://logo.clearbit.com/${BRAND_DOMAINS[program]}`;
+    img.alt=""; img.loading="lazy";
+    img.onerror=()=>brandLogoFallback(img,program);
+    l.appendChild(img);
+  }
+  const nm=document.createElement("span"); nm.className="nm"; nm.textContent=val; nm.title=val; l.appendChild(nm);
+  const ct=document.createElement("span"); ct.className="ct"; ct.textContent=n; l.appendChild(ct);
+  return l;
+}
+function matches(f){
+  const p=f.properties;
+  if(state.cats.size && !state.cats.has(p.category)) return false;
+  if(state.brands.size && !state.brands.has(p.program)) return false;
+  if(state.countries.size && !state.countries.has(p.country)) return false;
+  // deep-link-only axes
+  if(state.ids.size && !state.ids.has(p.id)) return false;
+  if(state.brand && (p.brand||"").toLowerCase()!==state.brand.toLowerCase()) return false;
+  if(state.region && (p.marqueeRegion||"").toLowerCase()!==state.region.toLowerCase()) return false;
+  if(state.q){ const hay=(p.name+" "+p.city+" "+p.region+" "+p.country).toLowerCase(); if(hay.indexOf(state.q)<0) return false; }
+  return true;
+}
+let filterTimer;
+function applyFilters(){
+  clearTimeout(filterTimer);
+  filterTimer=setTimeout(()=>{
+    let shown=0;
+    for(const m of MARKERS){ const ok=matches(m._feat); m.position=ok?m._pos:null; if(ok) shown++; }
+    document.getElementById("count").textContent=shown.toLocaleString();
+  },90);
+}
+function resetFilters(){
+  state.cats.clear();state.brands.clear();state.countries.clear();state.q="";
+  state.brand=null;state.region=null;state.ids.clear();
+  document.querySelectorAll(".opt input").forEach(c=>c.checked=false);
+  document.getElementById("search").value="";
+  renderActiveChips();
+  // drop deep-link params so a reload starts clean
+  try{ history.replaceState(null,"",location.pathname); }catch(_){}
+  applyFilters();
+}
+
+/* ---- search autocomplete (local data only) ---- */
+function renderAC(){
+  const box=document.getElementById("aclist");
+  const q=state.q;
+  if(!q || q.length<2){ box.classList.remove("open"); box.innerHTML=""; return; }
+  // rank: name-startsWith first, then city-startsWith, then any substring
+  const score=f=>{const p=f.properties;const n=(p.name||"").toLowerCase(),c=(p.city||"").toLowerCase();
+    if(n.startsWith(q))return 0; if(c.startsWith(q))return 1;
+    if(n.includes(q))return 2; if(c.includes(q))return 3; return 4;};
+  const hits=FEATURES.filter(matches).map(f=>[score(f),f]).filter(x=>x[0]<4)
+    .sort((a,b)=>a[0]-b[0]).slice(0,8);
+  if(!hits.length){ box.classList.remove("open"); box.innerHTML=""; return; }
+  box.innerHTML="";
+  for(const [,f] of hits){
+    const p=f.properties;
+    const r=document.createElement("div"); r.className="acrow";
+    const sw=document.createElement("span"); sw.className="acsw"; sw.style.background=catColor(p.category);
+    const mn=document.createElement("span"); mn.className="acmain"; mn.textContent=p.name;
+    const sb=document.createElement("span"); sb.className="acsub"; sb.textContent=[p.city,p.country].filter(Boolean).join(", ");
+    r.append(sw,mn,sb);
+    r.addEventListener("click",()=>{ box.classList.remove("open"); openDetail(f); });
+    box.appendChild(r);
+  }
+  box.classList.add("open");
+}
+
+/* ---- detail panel ---- */
+function openDetail(f){
+  const p=f.properties;
+  document.getElementById("d-cat").textContent=p.category||"Hotel";
+  document.getElementById("d-cat").style.color=catColor(p.category);
+  document.getElementById("d-name").textContent=p.name;
+  document.getElementById("d-loc").textContent=[p.city,p.region,p.country].filter(Boolean).join(", ");
+  const fit=p.fit||{};
+  const desc=document.getElementById("d-desc");
+  if(fit.description){ desc.textContent=fit.description; desc.style.display=""; }
+  else { desc.textContent=""; desc.style.display="none"; }
+  const grid=document.getElementById("d-fitgrid");
+  const hasFit=fit.bestFit||fit.serviceStyle;
+  grid.style.display=hasFit?"":"none";
+  document.getElementById("d-bestfit").textContent=fit.bestFit||"—";
+  document.getElementById("d-service").textContent=fit.serviceStyle||"—";
+  const ratings=document.getElementById("d-ratings"); ratings.innerHTML="";
+  const addRating=(icon,label)=>{
+    const b=document.createElement("span"); b.className="ratingbadge";
+    const i=document.createElement("span"); i.className="ri"; i.textContent=icon;
+    const l=document.createElement("span"); l.textContent=label;
+    b.append(i,l); ratings.appendChild(b);
+  };
+  if(fit.forbesRating){ addRating("\u2605",`Forbes ${fit.forbesRating} Star`); }
+  if(fit.aaaDiamondRating){ addRating("\u25c6",`AAA ${fit.aaaDiamondRating} Diamond`); }
+  ratings.style.display=ratings.children.length?"":"none";
+  const chips=document.getElementById("d-chips"); chips.innerHTML="";
+  [p.program,p.category,...(fit.intentTags||[]).slice(0,3)].filter(Boolean).forEach(t=>{const c=document.createElement("span");c.className="chip";c.textContent=t;chips.appendChild(c);});
+  document.getElementById("d-addr").textContent=p.address||"—";
+  const progEl=document.getElementById("d-prog");
+  if(p.program && BRAND_DOMAINS[p.program]){
+    const logo=brandLogo(p.program);
+    progEl.innerHTML=`<span class="prog-logo"><img src="${logo}" alt="" onerror="brandLogoFallback(this,'${p.program.replace(/'/g,"\\'")}')"> ${p.program}</span>`;
+  } else {
+    progEl.textContent=p.program||"—";
+  }
+  const ups=document.getElementById("d-ups"); ups.innerHTML="";
+  (p.upgrades||[]).forEach(u=>{const li=document.createElement("li");li.textContent=formatVipBenefit(u);ups.appendChild(li);});
+  const book=document.getElementById("d-book");
+  let url=(p.bookUrl||"").trim(); if(url && !/^https?:/i.test(url)) url="https://"+url;
+  if(url){ book.href=url; book.style.display=""; } else book.style.display="none";
+  document.getElementById("d-pw").innerHTML = p.password ? `Password: <b>${p.password}</b>` : "";
+  document.getElementById("panel").classList.add("open");
+  // enlarge the selected pin, reset the previously selected one
+  const sel=MARKERS.find(m=>m._feat===f);
+  if(SELECTED && SELECTED._pin) try{SELECTED._pin.scale=0.7;}catch(_){}
+  if(sel && sel._pin) try{sel._pin.scale=1.25;}catch(_){}
+  SELECTED=sel||null;
+  // fly the camera to the hotel
+  if(map3d){
+    map3d.center={lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0],altitude:0};
+    map3d.range=2600; map3d.tilt=67;
   }
 }
 
-const markers={};let activeBrand=null,activeView=null;const activeMonths=new Set();
-let activePort=null,activePortRole='any',portView=null;
-const portMarkerLayer=L.layerGroup().addTo(map);
-function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-/* embarkation = first named port, disembarkation = last named port, calls = the rest */
-function tripPortRoles(t){
-  let names=[];
-  if(t.itin&&t.itin.length){ names=t.itin.filter(e=>e.n).map(e=>(e.n||'').trim()).filter(Boolean); }
-  if(!names.length){ names=[t.from,t.to].map(n=>(n||'').trim()).filter(Boolean); }
-  const embark=names[0]||null, disembark=names.length>1?names[names.length-1]:null;
-  const calls=new Set(names.slice(1,-1));
-  return {embark,disembark,calls,all:new Set(names)};
+function formatVipBenefit(raw){
+  const text=String(raw==null?"":raw).trim();
+  if(!text || /^["']?first priority["']?\b/i.test(text)) return text;
+  if(/^room upgrade\b/i.test(text) || /^upgrade\b/i.test(text)) return '"First Priority" '+text;
+  return text;
 }
-function tripMatchesPort(t,port,role){
-  if(!port) return true;
-  const r=tripPortRoles(t);
-  if(role==='embark') return r.embark===port;
-  if(role==='disembark') return r.disembark===port;
-  if(role==='call') return r.calls.has(port);
-  return r.all.has(port);
-}
-Object.keys(byRegion).forEach(key=>{
-  const reg=REGIONS[key];if(!reg)return;
-  const sailings=byRegion[key];const sz=Math.max(32,Math.min(60,28+sailings.length*.32));
-  const el=document.createElement('div');el.className='rmarker';el.style.setProperty('--sz',sz+'px');
-  el.innerHTML='<div class="ring">'+sailings.length+'</div><div class="tag">'+reg.name+' &middot; '+sailings.length+' sailing'+(sailings.length>1?'s':'')+'</div>';
-  el.addEventListener('click',e=>{e.stopPropagation();openRegion(key);});
-  const icon=L.divIcon({className:'',html:el,iconSize:[0,0]});
-  const mk=L.marker(reg.coord,{icon,riseOnHover:true}).addTo(map);
-  markers[key]={marker:mk,el,sailings};
-});
-function dateSort(a,b){return (a.startY*10000+a.startM*100+a.startD)-(b.startY*10000+b.startM*100+b.startD);}
-function isPastTrip(t){const td=new Date();td.setHours(0,0,0,0);return new Date(t.startY,t.startM-1,t.startD)<td;}
-function matchesFilters(t){return !isPastTrip(t)&&(!activeBrand||t.brand===activeBrand)&&(!activeMonths.size||activeMonths.has(t.monthKey))&&(!activePort||tripMatchesPort(t,activePort,activePortRole));}
-function filteredSailings(sailings){return sailings.filter(matchesFilters);}
-function monthLabel(key){const parts=key.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(parts[1])-1]+' '+parts[0];}
-function updateDateSummary(){
-  const summary=document.getElementById('dateSummary');
-  if(!activeMonths.size){summary.textContent='All sailings';return;}
-  const labels=Array.from(activeMonths).sort().map(monthLabel);
-  summary.textContent=labels.length===1?labels[0]:labels.length+' months selected';
-}
-function updateMarkerCounts(){
-  Object.entries(markers).forEach(([key,obj])=>{
-    const count=filteredSailings(obj.sailings).length;
-    const reg=REGIONS[key];
-    obj.el.querySelector('.ring').textContent=count;
-    obj.el.querySelector('.tag').textContent=reg.name+' · '+count+' sailing'+(count!==1?'s':'');
-    obj.el.classList.toggle('dim',count===0);
-    obj.el.classList.toggle('hit',(activeBrand||activeMonths.size)&&count>0);
-  });
-}
-function buildDateGrid(){
-  const grid=document.getElementById('dateGrid');
-  const months=Array.from(new Set(TRIPS.map(t=>t.monthKey))).sort();
-  const years=Array.from(new Set(months.map(k=>k.slice(0,4)))).sort();
-  grid.innerHTML='';
-  years.forEach(y=>{
-    const wrap=document.createElement('div');wrap.className='year';
-    const title=document.createElement('div');title.className='yt';title.textContent=y;
-    const monthWrap=document.createElement('div');monthWrap.className='months';
-    months.filter(k=>k.startsWith(y+'-')).forEach(k=>{
-      const btn=document.createElement('button');btn.className='month';btn.type='button';btn.dataset.month=k;
-      btn.textContent=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(k.slice(5))-1];
-      btn.addEventListener('click',()=>{
-        if(activeMonths.has(k))activeMonths.delete(k);else activeMonths.add(k);
-        btn.classList.toggle('active',activeMonths.has(k));
-        document.getElementById('dateBtn').classList.toggle('active',!!activeMonths.size);
-        updateDateSummary();applyFilter();refreshActivePanel();
-      });
-      monthWrap.appendChild(btn);
-    });
-    wrap.appendChild(title);wrap.appendChild(monthWrap);grid.appendChild(wrap);
-  });
-}
-buildDateGrid();
-document.getElementById('dateBtn').addEventListener('click',e=>{
-  e.stopPropagation();portPop.classList.remove('open');document.getElementById('datePop').classList.toggle('open');
-});
-document.getElementById('datePop').addEventListener('click',e=>e.stopPropagation());
-document.getElementById('dateClear').addEventListener('click',()=>{
-  activeMonths.clear();document.querySelectorAll('.month').forEach(m=>m.classList.remove('active'));
-  document.getElementById('dateBtn').classList.remove('active');updateDateSummary();applyFilter();refreshActivePanel();
-});
-/* ===== Ports filter ===== */
-const portBtn=document.getElementById('portBtn'),portPop=document.getElementById('portPop');
-const portSearch=document.getElementById('portSearch'),portListEl=document.getElementById('portList');
-const portSummary=document.getElementById('portSummary');
-const roleLbl={any:'sailing visiting',embark:'sailing embarking at',disembark:'sailing disembarking at',call:'sailing with a day visit to'};
-/* aggregate ports across trips passing the *other* (date+brand) filters, not the port filter itself */
-function portAgg(role){
-  const agg={};
-  TRIPS.forEach(t=>{
-    if(isPastTrip(t))return;
-    if(activeBrand&&t.brand!==activeBrand)return;
-    if(activeMonths.size&&!activeMonths.has(t.monthKey))return;
-    const r=tripPortRoles(t);
-    const add=(name,k)=>{ if(!name||!PORTS[name])return; const a=agg[name]||(agg[name]={name,embark:0,disembark:0,call:0,seen:new Set()}); a[k]++; a.seen.add(t.id); };
-    add(r.embark,'embark');
-    if(r.disembark!==r.embark) add(r.disembark,'disembark');
-    r.calls.forEach(n=>add(n,'call'));
-  });
-  let arr=Object.values(agg).map(a=>({name:a.name,embark:a.embark,disembark:a.disembark,call:a.call,total:a.seen.size}));
-  if(role!=='any') arr=arr.filter(a=>a[role]>0);
-  arr.sort((a,b)=>a.name.localeCompare(b.name));
-  return arr;
-}
-function renderPortList(){
-  const q=(portSearch.value||'').trim().toLowerCase();
-  let arr=portAgg(activePortRole);
-  if(q) arr=arr.filter(a=>a.name.toLowerCase().includes(q));
-  portListEl.innerHTML='';
-  if(!arr.length){ portListEl.innerHTML='<div class="portempty">No ports match.</div>'; return; }
-  arr.forEach(a=>{
-    const row=document.createElement('div'); row.className='portrow'+(a.name===activePort?' sel':'');
-    const cnt=activePortRole==='any'?a.total:a[activePortRole];
-    const bits=[]; if(a.embark)bits.push(a.embark+' start'); if(a.disembark)bits.push(a.disembark+' end'); if(a.call)bits.push(a.call+' visit'+(a.call>1?'s':''));
-    row.innerHTML='<div><div class="pn">'+esc(a.name)+'</div><div class="pb">'+bits.join(' &middot; ')+'</div></div><div class="pc">'+cnt+'</div>';
-    row.addEventListener('click',()=>selectPort(a.name));
-    portListEl.appendChild(row);
-  });
-}
-function showPortPin(name){
-  portMarkerLayer.clearLayers();
-  const ll=PORTS[name]; if(!ll)return;
-  const html='<div class="portpin"><div class="pp-dot"></div><div class="pp-lbl">'+esc(name)+'</div></div>';
-  L.marker(ll,{icon:L.divIcon({className:'',html,iconSize:[0,0]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(portMarkerLayer);
-  if(!routeLocked) map.flyTo(ll,Math.max(map.getZoom(),5),{duration:.8});
-}
-function openPortResults(name){
-  portView=name; activeView=null;
-  if(!routeLocked){ pinnedTrip=null; clearRoute(); document.body.classList.remove('tracing'); }
-  const list=TRIPS.filter(matchesFilters).sort((a,b)=>dateSort(a,b)||a.title.localeCompare(b.title));
-  document.querySelector('.panel .klabel').textContent='Luxury yacht port';
-  document.getElementById('pTitle').textContent=name;
-  document.getElementById('pSub').textContent=list.length+' '+(roleLbl[activePortRole]||'sailing visiting')+' this port'+(list.length!==1?'s':'')+' &middot; hover a card to preview its route';
-  const L0=document.getElementById('pList'); L0.innerHTML=''; list.forEach(t=>L0.appendChild(makeCard(t)));
-  panel.classList.add('open');
-  showPortPin(name);
-}
-function selectPort(name){
-  activePort=name;
-  portBtn.classList.add('active');
-  portSummary.textContent=name.length>24?name.slice(0,23)+'…':name;
-  portPop.classList.remove('open');
-  applyFilter();
-  openPortResults(name);
-}
-function clearPortFilter(){
-  activePort=null; portView=null; portMarkerLayer.clearLayers();
-  portBtn.classList.remove('active'); portSummary.textContent='All ports';
-}
-function refreshActivePanel(){ if(portView) openPortResults(portView); else if(activeView) openRegion(activeView); }
-portBtn.addEventListener('click',e=>{
-  e.stopPropagation(); document.getElementById('datePop').classList.remove('open');
-  const open=portPop.classList.toggle('open'); if(open) renderPortList();
-});
-portPop.addEventListener('click',e=>e.stopPropagation());
-portSearch.addEventListener('input',renderPortList);
-document.getElementById('portRoles').addEventListener('click',e=>{
-  const b=e.target.closest('.proll'); if(!b)return;
-  activePortRole=b.dataset.role;
-  document.querySelectorAll('#portRoles .proll').forEach(x=>x.classList.toggle('active',x===b));
-  renderPortList();
-  if(activePort){ applyFilter(); if(portView) openPortResults(activePort); }
-});
-document.getElementById('portClear').addEventListener('click',()=>{
-  const had=!!portView; clearPortFilter(); applyFilter(); renderPortList();
-  if(had){ panel.classList.remove('open'); activeView=null; }
-});
-const opList=document.getElementById('opList');
-const brandCounts={};TRIPS.forEach(t=>brandCounts[t.brand]=(brandCounts[t.brand]||0)+1);
-Object.keys(BRANDS).forEach(key=>{
-  const m=BRANDS[key];const row=document.createElement('div');row.className='op';
-  const lg=logoEl(key);const txt=document.createElement('div');const n=brandCounts[key]||0;
-  txt.innerHTML='<div class="nm">'+m.short+'</div><div class="ct">'+n+' sailing'+(n!==1?'s':'')+'</div>';
-  const dot=document.createElement('div');dot.className='dot';dot.style.background=m.color;
-  row.appendChild(lg);row.appendChild(txt);row.appendChild(dot);row.addEventListener('click',()=>toggleBrand(key,row));opList.appendChild(row);
-});
-function toggleBrand(key,row){
-  const wasActive=activeBrand===key;document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
-  if(wasActive){activeBrand=null;}else{activeBrand=key;row.classList.add('active');}
-  applyFilter();document.getElementById('reset').classList.toggle('show',!!activeBrand);
-  refreshActivePanel();
-}
-function applyFilter(){
-  updateMarkerCounts();
-}
-document.getElementById('reset').addEventListener('click',()=>{
-  activeBrand=null;document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
-  applyFilter();document.getElementById('reset').classList.remove('show');refreshActivePanel();
-});
-function makeCard(t){
-  const a=document.createElement('a');a.className='card';a.href=t.u;a.target='_blank';a.rel='noopener';
-  a._trip=t;
-  const lg=logoEl(t.brand);const meta=document.createElement('div');meta.className='meta';
-  meta.innerHTML='<div class="nm">'+t.title+'</div><div class="dt">'+t.dates+'</div><div class="go">'+BRANDS[t.brand].short+' &middot; '+t.ship+' &#8599;</div><div class="rt">'+t.route+'</div>';
-  const ar=document.createElement('div');ar.className='arrow';ar.textContent='›';
-  a.appendChild(lg);a.appendChild(meta);a.appendChild(ar);
-  if(activeBrand&&t.brand===activeBrand)a.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  if(isTraceable(t)){
-    a.addEventListener('mouseenter',()=>{ if(!routeLocked) drawRoute(t,false); });
-    a.addEventListener('mouseleave',()=>{ if(!routeLocked){ pinnedTrip?drawRoute(pinnedTrip,false):clearRoute(); } });
-    const trace=document.createElement('span');
-    trace.className='tracebtn';trace.setAttribute('role','button');trace.tabIndex=0;
-    trace.innerHTML='&#128506; Trace route on map';
-    const doTrace=e=>{ e.preventDefault();e.stopPropagation(); pinnedTrip=t; routeLocked=true; document.body.classList.add('tracing'); drawRoute(t,true); };
-    trace.addEventListener('click',doTrace);
-    trace.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ')doTrace(e); });
-    meta.appendChild(trace);
-  }
-  return a;
-}
-function sortTrips(sailings){
-  return filteredSailings(sailings).slice().sort((a,b)=>{
-    if(activeBrand){const am=a.brand===activeBrand,bm=b.brand===activeBrand;if(am!==bm)return am?-1:1;}
-    return dateSort(a,b)||a.title.localeCompare(b.title);
-  });
-}
-const panel=document.getElementById('panel');
-function openRegion(key){
-  if(activePort){ clearPortFilter(); applyFilter(); }
-  activeView=key;
-  if(!routeLocked){ pinnedTrip=null; clearRoute(); document.body.classList.remove('tracing'); }
-  const reg=REGIONS[key];const sailings=sortTrips(byRegion[key]);
-  document.querySelector('.panel .klabel').textContent='Luxury yacht region';
-  document.getElementById('pTitle').textContent=reg.name;
-  document.getElementById('pSub').textContent=sailings.length+' hotel yacht sailing'+(sailings.length!==1?'s':'')+' found here · hover a card to preview its route, or tap a card for cruise search';
-  const list=document.getElementById('pList');list.innerHTML='';sailings.forEach(t=>list.appendChild(makeCard(t)));
-  panel.classList.add('open');
-  if(!routeLocked){ const c=reg.coord;map.flyTo([c[0],c[1]],Math.max(map.getZoom(),3),{duration:.8}); }
-}
-applyFilter();
-function closePanel(){
-  panel.classList.remove('open');activeView=null;
-  pinnedTrip=null;routeLocked=false;clearRoute();document.body.classList.remove('tracing');
-  document.getElementById('datePop').classList.remove('open');
-  portPop.classList.remove('open');
-  if(activePort){ clearPortFilter(); applyFilter(); }
-}
-/* Full reset: clear brand + port filters, close the panel, drop routes, un-dim pins */
-function showAll(){
-  activeBrand=null; document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
-  document.getElementById('reset').classList.remove('show');
-  clearPortFilter(); applyFilter(); closePanel();
-}
-window.__atlasShowAll=showAll;
-document.getElementById('close').addEventListener('click',closePanel);
-map.on('click',()=>{
-  document.getElementById('datePop').classList.remove('open');
-  portPop.classList.remove('open');
-  if(routeLocked||pinnedTrip) return; // a traced route stays put until panel is closed or another card chosen
-  closePanel();
-});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
-const _routeBack=document.getElementById('routeBack');
-if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classList.remove('tracing'); }); }
-});
+
+init();
 </script>
 
-<!-- ===== Menu show/hide toggle (mobile-friendly) ===== -->
+<!-- ===== Bottom dock (pill controls) ===== -->
 <style>
-  /* ---------- Auto-hiding top bar ---------- */
-  .topbar{transition:transform .3s ease,opacity .3s ease}
-  body.nav-hidden .topbar{transform:translateY(-115%);opacity:0;pointer-events:none}
   /* ---------- Unified bottom toolbar (dock) ---------- */
   .dock{position:absolute;z-index:1200;left:50%;bottom:16px;transform:translateX(-50%);
-    display:flex;align-items:center;gap:6px;padding:6px;border-radius:34px;
-    background:rgba(17,21,29,.62);border:1px solid rgba(236,223,194,.16);box-shadow:var(--shadow);
+    display:inline-flex;align-items:center;gap:4px;padding:4px;
+    background:rgba(17,21,29,.88);border:1px solid rgba(255,255,255,.1);border-radius:50px;
     -webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);
-    max-width:calc(100vw - 24px)}
+    box-shadow:0 8px 32px rgba(0,0,0,.5)}
   .dockbtn{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:8px;height:42px;
-    padding:0 16px;border:0;border-radius:28px;cursor:pointer;text-decoration:none;
-    font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.3px;color:var(--ink);
-    background:transparent;transition:background .15s,opacity .2s,transform .12s;white-space:nowrap}
+    padding:0 18px;border-radius:40px;border:none;background:transparent;color:var(--ink);
+    font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:.15s;text-decoration:none}
   .dockbtn:hover{background:rgba(255,255,255,.08)}
   .dockbtn:active{transform:scale(.95)}
   .dockbtn .pi{font-size:16px;line-height:1;color:var(--accent);width:16px;text-align:center}
   #panelPill{opacity:.4;pointer-events:none}
   body.panel-active #panelPill{opacity:1;pointer-events:auto}
-  /* Left rail fades to transparent + blurred, then collapses into its pill */
+  /* Rail and panel toggle via body classes */
   .rail{transition:opacity .26s ease,transform .26s ease,visibility .26s}
   body.rail-hidden .rail{opacity:0;transform:translateX(-12px) scale(.97);visibility:hidden;pointer-events:none}
-  body.rail-hidden #datePop{display:none}
-  /* Right detail panel collapses into its pill */
   body.panel-collapsed .panel.open{transform:translateX(105%)}
-  body.panel-collapsed #datePop{display:none}
-  @media (max-width:640px){
+  @media (max-width:680px){
     .dockbtn .pl{display:none}
     .dockbtn{padding:0 13px}
-    body.rail-shown .rail{display:flex !important;opacity:1;visibility:visible;transform:none;
-      background:rgba(17,21,29,.96) !important;border:1px solid var(--line) !important;border-radius:14px !important;
-      box-shadow:var(--shadow) !important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px) !important;
-      max-height:calc(100% - 150px) !important}
-    body.rail-shown .rail h2{display:block !important}
-    body.rail-shown .rail .ops{display:block !important}
-    body.rail-shown .rail .reset.show{display:block !important}
+    body:not(.rail-shown) .rail{opacity:0;transform:translateX(-12px) scale(.97);visibility:hidden;pointer-events:none}
+    /* When filters shown on mobile: overlay the map from top */
+    body.rail-shown .rail{position:absolute !important;top:72px !important;left:12px !important;right:12px !important;
+      bottom:auto !important;width:auto !important;max-height:calc(100% - 140px) !important;
+      border-radius:14px !important;transform:none !important;opacity:1 !important;
+      visibility:visible !important;display:flex !important;
+      background:rgba(17,21,29,.96) !important;border:1px solid var(--line) !important;
+      box-shadow:var(--shadow) !important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px) !important}
   }
 </style>
+
 <div class="dock" role="toolbar" aria-label="Map controls">
   <button id="railPill" class="dockbtn" type="button" aria-label="Show or hide the filters menu" title="Show / hide filters"><span class="pi">&#9776;</span><span class="pl">Filters</span></button>
   <button id="panelPill" class="dockbtn" type="button" aria-label="Show or hide the details panel" title="Show / hide details"><span class="pi">&#8249;</span><span class="pl">Details</span></button>
-  <button id="resetAll" class="dockbtn" type="button" aria-label="Show all regions" title="Show all regions"><span class="pi">&#8634;</span><span class="pl">Show all</span></button>
   <a id="helpDock" class="dockbtn" href="mailto:Book@BeVvip.com" data-help-open role="button" aria-label="Need help — contact us"><span class="pi">?</span><span class="pl">Need Help</span></a>
 </div>
-<div id="routeBack" role="button" tabindex="0">&#8593; Show sailings</div>
+
 <script>
 (function(){
   var body=document.body;
   var railPill=document.getElementById('railPill');
   var panelPill=document.getElementById('panelPill');
-  var panel=document.querySelector('.panel');
-  var mq=window.matchMedia('(max-width:640px)');
-  var railCollapsed=mq.matches;               // hidden on mobile/small screens by default
-  function setIcon(el,ch){ var p=el&&el.querySelector('.pi'); if(p)p.innerHTML=ch; }
+  function setIcon(btn,html){ btn.querySelector('.pi').innerHTML=html; }
+  var mq=window.matchMedia("(max-width:640px)");
+  var railCollapsed=mq.matches; // hidden on mobile/small screens by default
   function syncRail(){
     body.classList.toggle('rail-hidden',railCollapsed);
     body.classList.toggle('rail-shown',!railCollapsed);
@@ -645,31 +728,21 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
   }
   railPill.addEventListener('click',function(){ railCollapsed=!railCollapsed; syncRail(); });
   panelPill.addEventListener('click',function(){ body.classList.toggle('panel-collapsed'); syncPanel(); });
-  var resetAll=document.getElementById('resetAll');
-  if(resetAll){ resetAll.addEventListener('click',function(){ if(window.__atlasShowAll) window.__atlasShowAll(); }); }
-  if(panel){
-    new MutationObserver(function(){
-      var open=panel.classList.contains('open');
-      body.classList.toggle('panel-active',open);
-      if(!open){ body.classList.remove('panel-collapsed'); }
-      if(mq.matches){ railCollapsed=open; syncRail(); }   // only auto-hide filters on mobile/small screens
-      syncPanel();
-    }).observe(panel,{attributes:true,attributeFilter:['class']});
-  }
-  /* viewport changes no longer force the filter menu closed */
+  // Watch panel open/close to sync pill state and auto-hide filters
+  var panel=document.getElementById('panel');
+  new MutationObserver(function(){
+    var open=panel.classList.contains('open');
+    body.classList.toggle('panel-active',open);
+    if(!open){ body.classList.remove('panel-collapsed'); }
+    if(mq.matches){ railCollapsed=open; syncRail(); }   // only auto-hide filters on mobile/small screens
+    syncPanel();
+  }).observe(panel,{attributes:true,attributeFilter:['class']});
   syncRail(); syncPanel();
-  /* Auto-hide the top bar while dragging the map; tap the map to bring it back */
-  (function(){ function hook(m){ m.on('dragstart',function(){ body.classList.add('nav-hidden'); });
-    m.on('click',function(){ body.classList.remove('nav-hidden'); }); }
-    (function wait(){ if(window.__atlasMap){ hook(window.__atlasMap); } else { setTimeout(wait,150); } })(); })();
 })();
 </script>
 
-<!-- ===== Need Help contact modal + CTAs ===== -->
+<!-- ===== Need Help contact modal ===== -->
 <style>
-  .topbar .partner{margin-left:auto}
-  .hint .hintcta{color:var(--accent);text-decoration:none;cursor:pointer;font-weight:700}
-  .hint .hintcta:hover{text-decoration:underline}
   .helpoverlay{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;
     background:rgba(3,6,11,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);padding:18px}
   .helpoverlay.open{display:flex}
@@ -698,8 +771,6 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
   .helpstatus.ok{color:var(--accent2)}
   .helpstatus.err{color:#ff8a8a}
   .helpstatus.err a{color:var(--accent)}
-  @media (max-width:640px){.topbar .partner{margin-left:auto}.topbar h1 a.bev{display:none}
-    .logochip.ata{height:30px;padding:2px 5px}.logochip.ata img{height:24px;max-width:96px}}
 </style>
 <div class="helpoverlay" id="helpOverlay" aria-hidden="true">
   <div class="helpmodal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
@@ -712,11 +783,11 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
       <input type="email" name="email" placeholder="Your email" autocomplete="email" required>
       <textarea name="message" placeholder="How can we help?" rows="4" required></textarea>
       <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
-      <input type="hidden" name="_subject" value="Need Help — Luxury Hotel Yacht Atlas">
+      <input type="hidden" name="_subject" value="Need Help — Hotel Atlas">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_captcha" value="false">
       <button type="submit" class="helpsubmit">Send message</button>
-      <div class="helpfallback">or email us directly at <a href="mailto:Book@BeVvip.com?subject=Need%20Help%20%E2%80%94%20Luxury%20Hotel%20Yacht%20Atlas">Book@BeVvip.com</a></div>
+      <div class="helpfallback">or email us directly at <a href="mailto:Book@BeVvip.com?subject=Need%20Help%20%E2%80%94%20Hotel%20Atlas">Book@BeVvip.com</a></div>
       <div class="helpstatus" id="helpStatus" role="status"></div>
     </form>
   </div>
