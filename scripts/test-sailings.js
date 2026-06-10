@@ -23,10 +23,22 @@ test("region filter maps MED family to mediterranean", () => {
   assert.ok(r.every((s) => s.region === "mediterranean"));
 });
 
-test("country filter matches embarkation/disembarkation country", () => {
+test("country filter matches any port of call, not just endpoints", () => {
   const r = filterSailings({ country: "Italy" });
   assert.ok(r.length > 0);
-  assert.ok(r.every((s) => `${ci(s.from)} ${ci(s.to)} ${ci(s.route)}`.includes("italy")));
+  assert.ok(r.every((s) =>
+    `${ci(s.from)} ${ci(s.to)} ${ci(s.route)} ${(s.ports || []).map(ci).join(" ")}`.includes("italy")));
+  // sailings that only touch Italy mid-itinerary are included
+  const midRouteOnly = r.filter((s) => !`${ci(s.from)} ${ci(s.to)} ${ci(s.route)}`.includes("italy"));
+  assert.ok(midRouteOnly.length > 0);
+});
+
+test("records expose ordered ports of call and port countries", () => {
+  const withPorts = sailings.filter((s) => s.ports && s.ports.length > 1);
+  assert.ok(withPorts.length > 100);
+  assert.ok(withPorts.every((s) => Array.isArray(s.countries)));
+  const med = withPorts.find((s) => s.countries.length > 1);
+  assert.ok(med, "multi-country sailings carry every port country");
 });
 
 test("month filter (YYYY-MM) narrows by monthKey", () => {
