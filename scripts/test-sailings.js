@@ -54,6 +54,16 @@ test("query paginates with honest total + deepLink", () => {
   assert.ok(r.deepLink.includes("region=mediterranean"));
 });
 
+test("intent ranks with itinerary-fit rows and returns fit metadata", () => {
+  const r = query({ region: "mediterranean", intent: "honeymoon", limit: 5 });
+  assert.equal(r.count, Math.min(5, r.total));
+  assert.ok(r.deepLink.includes("intent=honeymoon"));
+  assert.ok(r.results.every((s) => s.fit && s.fit.intent === "honeymoon"));
+  for (let i = 1; i < r.results.length; i++) {
+    assert.ok(r.results[i - 1].fit.score >= r.results[i].fit.score);
+  }
+});
+
 test("clampLimit default 6, capped at 24", () => {
   assert.equal(clampLimit(undefined), 6);
   assert.equal(clampLimit(100), 24);
