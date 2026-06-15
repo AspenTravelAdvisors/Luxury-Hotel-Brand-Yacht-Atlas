@@ -283,6 +283,145 @@ function markRoutedCard(trip,scroll){
 }
 function unroll(coords){ const out=[coords[0].slice()]; for(let i=1;i<coords.length;i++){ let la=coords[i][0],lo=coords[i][1]; const prevLo=out[i-1][1]; while(lo-prevLo>180)lo-=360; while(lo-prevLo<-180)lo+=360; out.push([la,lo]); } return out; }
 function arcPts(a,b){ const la1=a[0],lo1=a[1],la2=b[0],lo2=b[1]; const mx=(lo1+lo2)/2,my=(la1+la2)/2,dx=lo2-lo1,dy=la2-la1; const k=0.16; const cx=mx-dy*k,cy=my+dx*k; const p=[]; for(let t=0;t<=1.0001;t+=0.04){ const x=(1-t)*(1-t)*lo1+2*(1-t)*t*cx+t*t*lo2; const y=(1-t)*(1-t)*la1+2*(1-t)*t*cy+t*t*la2; p.push([y,x]); } return p; }
+/* ===== Sea routing: keep cruise legs off land (land mask + A*) ===== */
+const SEA={mask:null,ocean:null,W:3600,H:1700,RES:10,LAT_MAX:85,ready:false};
+(function loadLandMask(){
+  fetch('data/landmask.bin').then(r=>r.ok?r.arrayBuffer():Promise.reject(r.status))
+   .then(buf=>{ SEA.mask=new Uint8Array(buf); buildOcean(); SEA.ready=true; _legCache.clear();
+     if(pinnedTrip) drawRoute(pinnedTrip,false); })
+   .catch(()=>{ SEA.ready=false; });   // routing disabled -> arcs as before
+})();
+function buildOcean(){            // flood-fill the open ocean so we never start/end a route in a closed bay
+  const N=SEA.W*SEA.H, ocean=new Uint8Array((N+7)>>3);
+  const getO=i=>(ocean[i>>3]>>(i&7))&1, setO=i=>{ocean[i>>3]|=(1<<(i&7));};
+  const q=new Int32Array(N); let head=0,tail=0;
+  for(const [la,lo] of [[0,-150],[0,-30],[0,80],[40,-45],[60,-180],[-40,60]]){
+    const c=_col(lo), r=_row(la); if(r<0||r>=SEA.H) continue; const i=r*SEA.W+c;
+    if(!isLandCell(c,r)&&!getO(i)){ setO(i); q[tail++]=i; }
+  }
+  while(head<tail){ const i=q[head++], r=(i/SEA.W)|0, c=i-r*SEA.W; let nc,ni;
+    nc=c+1>=SEA.W?0:c+1; ni=r*SEA.W+nc; if(!getO(ni)&&!isLandCell(nc,r)){setO(ni);q[tail++]=ni;}
+    nc=c-1<0?SEA.W-1:c-1; ni=r*SEA.W+nc; if(!getO(ni)&&!isLandCell(nc,r)){setO(ni);q[tail++]=ni;}
+    if(r+1<SEA.H){ni=(r+1)*SEA.W+c; if(!getO(ni)&&!isLandCell(c,r+1)){setO(ni);q[tail++]=ni;}}
+    if(r-1>=0){ni=(r-1)*SEA.W+c; if(!getO(ni)&&!isLandCell(c,r-1)){setO(ni);q[tail++]=ni;}}
+  }
+  SEA.ocean=ocean;
+}
+function oceanAt(c,r){ if(!SEA.ocean) return !isLandCell(c,r); if(r<0||r>=SEA.H)return false; if(c<0)c+=SEA.W; if(c>=SEA.W)c-=SEA.W; const i=r*SEA.W+c; return (SEA.ocean[i>>3]>>(i&7))&1; }
+const _legCache=new Map();
+function _normLng(lng){return ((lng+180)%360+360)%360-180;}
+function _col(lng){let c=Math.round((_normLng(lng)+180)*SEA.RES);if(c>=SEA.W)c-=SEA.W;if(c<0)c+=SEA.W;return c;}
+function _row(lat){return Math.round((SEA.LAT_MAX-lat)*SEA.RES);}
+function _cellLng(c){return -180+c/SEA.RES;}
+function _cellLat(r){return SEA.LAT_MAX-r/SEA.RES;}
+function isLandCell(c,r){ if(r<0||r>=SEA.H)return false; if(c<0)c+=SEA.W; if(c>=SEA.W)c-=SEA.W; const i=r*SEA.W+c; return (SEA.mask[i>>3]>>(i&7))&1; }
+function isLandLL(lat,lng){ if(!SEA.mask)return false; if(lat>SEA.LAT_MAX||lat<-SEA.LAT_MAX)return false; const r=_row(lat); if(r<0||r>=SEA.H)return false; return isLandCell(_col(lng),r); }
+function nearLandCell(c,r){return isLandCell(c+1,r)||isLandCell(c-1,r)||isLandCell(c,r+1)||isLandCell(c,r-1);}
+function lineHitsLand(a,b){
+  const dlat=b[0]-a[0], dlng=_normLng(b[1]-a[1]);
+  const steps=Math.max(2,Math.ceil(Math.hypot(dlat,dlng)*SEA.RES*1.5));
+  for(let i=1;i<steps;i++){const f=i/steps; if(isLandLL(a[0]+dlat*f, _normLng(a[1]+dlng*f))) return true;}
+  return false;
+}
+function polyHitsLand(pts){for(let i=0;i<pts.length-1;i++)if(lineHitsLand(pts[i],pts[i+1]))return true;return false;}
+function densify(a,b,n){const p=[];for(let i=0;i<=n;i++){const f=i/n;p.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]);}return p;}
+function nearestSeaCell(lat,lng){     // snap to the connected open ocean, not just any sea pixel
+  const c0=_col(lng), r0=_row(lat);
+  if(oceanAt(c0,r0)) return [c0,r0];
+  for(let rad=1;rad<=30;rad++) for(let dy=-rad;dy<=rad;dy++) for(let dx=-rad;dx<=rad;dx++){
+    if(Math.max(Math.abs(dx),Math.abs(dy))!==rad) continue;
+    if(oceanAt(c0+dx,r0+dy)) return [c0+dx,r0+dy];
+  }
+  return null;
+}
+function _hPush(h,n){h.push(n);let i=h.length-1;while(i>0){const p=(i-1)>>1;if(h[p].f<=h[i].f)break;const t=h[p];h[p]=h[i];h[i]=t;i=p;}}
+function _hPop(h){const top=h[0],last=h.pop();if(h.length){h[0]=last;let i=0;const n=h.length;for(;;){let l=2*i+1,r=l+1,s=i;if(l<n&&h[l].f<h[s].f)s=l;if(r<n&&h[r].f<h[s].f)s=r;if(s===i)break;const t=h[s];h[s]=h[i];h[i]=t;i=s;}}return top;}
+function _searchSea(sa,sb,pad){
+  const minC=Math.min(sa[0],sb[0])-pad, maxC=Math.max(sa[0],sb[0])+pad;
+  const minR=Math.max(0,Math.min(sa[1],sb[1])-pad), maxR=Math.min(SEA.H-1,Math.max(sa[1],sb[1])+pad);
+  const bw=maxC-minC+1, bh=maxR-minR+1;
+  if(bw*bh>1400000) return null;
+  const idx=(c,r)=>(r-minR)*bw+(c-minC);
+  const inBox=(c,r)=>c>=minC&&c<=maxC&&r>=minR&&r<=maxR;
+  const g=new Float64Array(bw*bh).fill(Infinity);
+  const came=new Int32Array(bw*bh).fill(-1);
+  const closed=new Uint8Array(bw*bh);
+  const cosR=r=>Math.max(0.15,Math.cos(_cellLat(r)*Math.PI/180));
+  const hcost=(c,r)=>Math.hypot(Math.abs(c-sb[0])*cosR(r),Math.abs(r-sb[1]));
+  g[idx(sa[0],sa[1])]=0;
+  const heap=[]; _hPush(heap,{c:sa[0],r:sa[1],f:hcost(sa[0],sa[1])});
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  let found=false;
+  while(heap.length){
+    const cur=_hPop(heap), ci=idx(cur.c,cur.r);
+    if(closed[ci]) continue; closed[ci]=1;
+    if(cur.c===sb[0]&&cur.r===sb[1]){found=true;break;}
+    const base=g[ci], cl=cosR(cur.r);
+    for(const [dx,dy] of dirs){
+      const nc=cur.c+dx, nr=cur.r+dy;
+      if(!inBox(nc,nr)||isLandCell(nc,nr)) continue;
+      const ni=idx(nc,nr); if(closed[ni]) continue;
+      let step=(dx&&dy)?Math.hypot(cl,1):(dx?cl:1);
+      if(nearLandCell(nc,nr)) step*=1.6;          // bias ~1 cell offshore
+      const ng=base+step;
+      if(ng<g[ni]){ g[ni]=ng; came[ni]=ci; _hPush(heap,{c:nc,r:nr,f:ng+hcost(nc,nr)}); }
+    }
+  }
+  if(!found) return null;
+  const path=[]; let ci=idx(sb[0],sb[1]);
+  while(ci!==-1){ path.push([_cellLat(minR+Math.floor(ci/bw)), _cellLng(minC+(ci%bw))]); ci=came[ci]; }
+  return path.reverse();
+}
+function aStarSea(a,b){
+  const sa=nearestSeaCell(a[0],a[1]), sb=nearestSeaCell(b[0],b[1]);
+  if(!sa||!sb) return null;
+  const span=Math.max(Math.abs(sa[0]-sb[0]),Math.abs(sa[1]-sb[1]));
+  const pads=[Math.max(45,Math.round(span*0.9))];   // direct box, then widen for round-the-land detours
+  for(const p of [140,280,440]) if(p>pads[pads.length-1]) pads.push(p);
+  for(const pad of pads){ const r=_searchSea(sa,sb,pad); if(r) return r; }
+  return null;
+}
+function rdp(pts,eps){
+  if(pts.length<3) return pts.slice();
+  const a=pts[0], b=pts[pts.length-1], dx=b[0]-a[0], dy=b[1]-a[1], len=Math.hypot(dx,dy)||1e-9;
+  let dmax=0, k=0;
+  for(let i=1;i<pts.length-1;i++){ const d=Math.abs((pts[i][0]-a[0])*dy-(pts[i][1]-a[1])*dx)/len; if(d>dmax){dmax=d;k=i;} }
+  if(dmax>eps) return rdp(pts.slice(0,k+1),eps).slice(0,-1).concat(rdp(pts.slice(k),eps));
+  return [a,b];
+}
+function chaikin(pts,iters){
+  let p=pts;
+  for(let it=0;it<iters&&p.length>=3;it++){
+    const out=[p[0]];
+    for(let i=0;i<p.length-1;i++){ const a=p[i],b=p[i+1];
+      out.push([a[0]*0.75+b[0]*0.25,a[1]*0.75+b[1]*0.25]);
+      out.push([a[0]*0.25+b[0]*0.75,a[1]*0.25+b[1]*0.75]); }
+    out.push(p[p.length-1]); p=out;
+  }
+  return p;
+}
+function legGeometry(a,b){
+  if(!SEA.ready||!SEA.mask) return arcPts(a,b);
+  const key=a[0].toFixed(2)+','+a[1].toFixed(2)+'|'+b[0].toFixed(2)+','+b[1].toFixed(2);
+  if(_legCache.has(key)) return _legCache.get(key);
+  let out;
+  if(!lineHitsLand(a,b)){
+    const arc=arcPts(a,b);
+    out = polyHitsLand(arc) ? densify(a,b,14) : arc;
+  } else {
+    const raw=aStarSea(a,b);
+    if(raw && raw.length>=2){
+      let body=chaikin(rdp(raw,0.12),2);
+      if(polyHitsLand(body)) body=rdp(raw,0.12);
+      if(polyHitsLand(body)) body=raw;
+      const off=a[1]-_normLng(a[1]);   // realign A* (normalized lng) to the leg's unrolled frame
+      if(off) body=body.map(p=>[p[0],p[1]+off]);
+      out=[a.slice(),...body,b.slice()];
+    } else { out=arcPts(a,b); }
+  }
+  _legCache.set(key,out);
+  return out;
+}
 function drawRoute(trip,fit){
   clearRoute();
   const entries=tripStops(trip);
@@ -291,7 +430,7 @@ function drawRoute(trip,fit){
   const lls=unroll(ports.map(e=>e.ll));          // unrolled port coords
   const legArcs=[];
   for(let i=0;i<lls.length-1;i++){
-    const pts=arcPts(lls[i],lls[i+1]); legArcs.push(pts);
+    const pts=legGeometry(lls[i],lls[i+1]); legArcs.push(pts);
     L.polyline(pts,{color:'#3a2c0d',weight:6,opacity:.22,lineCap:'round'}).addTo(routeLayer);
     L.polyline(pts,{color:'#e9cf86',weight:2.2,opacity:.95,lineCap:'round',dashArray:'1 7'}).addTo(routeLayer);
   }
