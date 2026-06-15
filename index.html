@@ -648,6 +648,7 @@ function openPortResults(name){
   document.getElementById('pSub').textContent=list.length+' '+(roleLbl[activePortRole]||'sailing visiting')+' this port'+(list.length!==1?'s':'')+' &middot; hover a card to preview its route';
   const L0=document.getElementById('pList'); L0.innerHTML=''; list.forEach(t=>L0.appendChild(makeCard(t)));
   panel.classList.add('open');
+  revealPanel();
   showPortPin(name);
 }
 function selectPort(name){
@@ -732,6 +733,16 @@ function sortTrips(sailings){
   });
 }
 const panel=document.getElementById('panel');
+function revealPanel(){
+  document.body.classList.remove('panel-collapsed');
+  document.dispatchEvent(new Event('atlas:panel-sync'));
+}
+function hidePanel(){
+  document.getElementById('datePop').classList.remove('open');
+  portPop.classList.remove('open');
+  document.body.classList.add('panel-collapsed');
+  document.dispatchEvent(new Event('atlas:panel-sync'));
+}
 function openSearchResults(title){
   activeView='__search__';portView=null;
   if(!routeLocked){pinnedTrip=null;clearRoute();document.body.classList.remove('tracing');}
@@ -742,6 +753,7 @@ function openSearchResults(title){
   document.getElementById('pSub').textContent=sailings.length+' hotel yacht sailing'+(sailings.length!==1?'s':'')+' matched this Guide shortlist · hover a card to preview its route';
   const list=document.getElementById('pList');list.innerHTML='';sailings.forEach(t=>list.appendChild(makeCard(t)));
   panel.classList.add('open');
+  revealPanel();
   fitTrips(sailings);
 }
 function openRegion(key){
@@ -754,6 +766,7 @@ function openRegion(key){
   document.getElementById('pSub').textContent=sailings.length+' hotel yacht sailing'+(sailings.length!==1?'s':'')+' found here · hover a card to preview its route, or tap a card for cruise search';
   const list=document.getElementById('pList');list.innerHTML='';sailings.forEach(t=>list.appendChild(makeCard(t)));
   panel.classList.add('open');
+  revealPanel();
   if(!routeLocked){ const c=reg.coord;map.flyTo([c[0],c[1]],Math.max(map.getZoom(),3),{duration:.8}); }
 }
 applyFilter();
@@ -794,7 +807,7 @@ function showAll(){
   clearPortFilter(); applyFilter(); closePanel();
 }
 window.__atlasShowAll=showAll;
-document.getElementById('close').addEventListener('click',()=>closePanel({preserveRoute:true}));
+document.getElementById('close').addEventListener('click',hidePanel);
 map.on('click',()=>{
   document.getElementById('datePop').classList.remove('open');
   portPop.classList.remove('open');
@@ -878,6 +891,7 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
   }
   railPill.addEventListener('click',function(){ railCollapsed=!railCollapsed; syncRail(); });
   panelPill.addEventListener('click',function(){ body.classList.toggle('panel-collapsed'); syncPanel(); });
+  document.addEventListener('atlas:panel-sync',syncPanel);
   var resetAll=document.getElementById('resetAll');
   if(resetAll){ resetAll.addEventListener('click',function(){ if(window.__atlasShowAll) window.__atlasShowAll(); }); }
   if(panel){
