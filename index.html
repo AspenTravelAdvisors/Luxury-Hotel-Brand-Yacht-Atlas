@@ -440,8 +440,9 @@ function drawRoute(trip,fit){
   ports.forEach((e,i)=>{
     const dot=L.divIcon({className:'',html:'<div class="stopdot">'+(i+1)+'</div>',iconSize:[0,0]});
     const lbl=(e.day?('Day '+e.day+' · '):'')+e.n;
-    L.marker(lls[i],{icon:dot,riseOnHover:true}).addTo(routeLayer)
+    const stopMarker=L.marker(lls[i],{icon:dot,riseOnHover:true}).addTo(routeLayer)
       .bindTooltip((i+1)+'. '+lbl,{direction:'top',offset:[0,-9],className:'stoptip',opacity:1});
+    stopMarker.on('click',()=>stopMarker.openTooltip());
   });
   // sea days -> count per leg (between consecutive ports)
   const legSeas={}; let portIdx=-1;
@@ -640,7 +641,7 @@ function showPortPin(name){
 }
 function openPortResults(name){
   portView=name; activeView=null;
-  if(!routeLocked){ pinnedTrip=null; clearRoute(); document.body.classList.remove('tracing'); }
+  if(!routeLocked&&!pinnedTrip){ pinnedTrip=null; clearRoute(); document.body.classList.remove('tracing'); }
   const list=TRIPS.filter(matchesFilters).sort((a,b)=>dateSort(a,b)||a.title.localeCompare(b.title));
   document.querySelector('.panel .klabel').textContent='Luxury yacht port';
   document.getElementById('pTitle').textContent=name;
@@ -713,8 +714,7 @@ function makeCard(t){
   a.appendChild(lg);a.appendChild(meta);a.appendChild(ar);
   if(activeBrand&&t.brand===activeBrand)a.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
   if(isTraceable(t)){
-    a.addEventListener('mouseenter',()=>{ if(!routeLocked) drawRoute(t,false); });
-    a.addEventListener('mouseleave',()=>{ if(!routeLocked){ pinnedTrip?drawRoute(pinnedTrip,false):clearRoute(); } });
+    a.addEventListener('mouseenter',()=>{ if(!routeLocked){ pinnedTrip=t; drawRoute(t,false); } });
     const trace=document.createElement('span');
     trace.className='tracebtn';trace.setAttribute('role','button');trace.tabIndex=0;
     trace.innerHTML='&#128506; Trace route on map';
@@ -774,9 +774,14 @@ function applyDeepLink(){
   else if(activeIds.size||activeBrand||activeMonths.size||activeSearchTerms.length)openSearchResults(activeIds.size?'Guide shortlist':'Filtered sailings');
 }
 applyDeepLink();
-function closePanel(){
+function closePanel(opts){
+  const preserveRoute=!!(opts&&opts.preserveRoute&&pinnedTrip);
   panel.classList.remove('open');activeView=null;
-  pinnedTrip=null;routeLocked=false;clearRoute();document.body.classList.remove('tracing');
+  if(preserveRoute){
+    routeLocked=false;document.body.classList.remove('tracing');markRoutedCard(pinnedTrip,false);
+  }else{
+    pinnedTrip=null;routeLocked=false;clearRoute();document.body.classList.remove('tracing');
+  }
   document.getElementById('datePop').classList.remove('open');
   portPop.classList.remove('open');
   if(activePort){ clearPortFilter(); applyFilter(); }
@@ -789,7 +794,7 @@ function showAll(){
   clearPortFilter(); applyFilter(); closePanel();
 }
 window.__atlasShowAll=showAll;
-document.getElementById('close').addEventListener('click',closePanel);
+document.getElementById('close').addEventListener('click',()=>closePanel({preserveRoute:true}));
 map.on('click',()=>{
   document.getElementById('datePop').classList.remove('open');
   portPop.classList.remove('open');
