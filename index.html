@@ -20,8 +20,7 @@
   html,body{height:100%;margin:0}
   body{font-family:var(--sans);background:var(--bg);color:var(--ink);overflow:hidden}
   #map{position:absolute;inset:0;background:#0a0d13;z-index:1}
-  .topbar{position:absolute;top:0;left:0;right:0;z-index:1000;display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:10px 18px 14px;background:linear-gradient(180deg,rgba(5,7,11,.96),rgba(5,7,11,.78) 68%,rgba(5,7,11,.18));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(236,223,194,.12);pointer-events:none}
-  .topbar-main{display:flex;align-items:center;gap:14px;min-width:0}
+  .topbar{position:absolute;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;gap:14px;padding:12px 18px;background:linear-gradient(180deg,rgba(5,7,11,.94),rgba(5,7,11,.55) 70%,transparent);pointer-events:none}
   .topbar .brand{pointer-events:auto;display:flex;align-items:center;gap:13px}
   .topbar h1{font-family:var(--serif);font-size:23px;margin:0;letter-spacing:.4px;font-weight:600;line-height:1}
   .topbar h1 span{color:var(--accent)}
@@ -37,52 +36,7 @@
   .partner{pointer-events:auto;margin-left:auto;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--muted);transition:.15s}
   .partner:hover{color:var(--ink)}
   .partner span{font-size:11px;letter-spacing:.6px;text-transform:uppercase;font-weight:600;white-space:nowrap}
-  .guide-ribbon{pointer-events:auto;display:grid;grid-template-columns:minmax(220px,560px) auto;align-items:center;gap:18px;width:100%;max-width:1180px;margin:0 auto;color:var(--ink)}
-  .guide-promptline{display:flex;align-items:center;gap:12px;min-width:0;border-bottom:1px solid rgba(236,223,194,.25);padding:6px 2px 8px;transition:border-color .2s}
-  .guide-promptline:focus-within{border-color:var(--accent)}
-  .guide-promptline .q{flex:0 0 auto;width:15px;height:15px;color:var(--muted);opacity:.9}
-  .guide-promptline input{flex:1 1 auto;min-width:0;background:none;border:0;outline:0;color:var(--ink);font-family:var(--serif);font-size:18px;letter-spacing:.01em}
-  .guide-promptline input::placeholder{color:var(--muted);opacity:.9;font-style:italic}
-  .guide-promptline .send{flex:0 0 auto;background:none;border:0;cursor:pointer;color:var(--accent);font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:4px 2px;opacity:0;pointer-events:none;transition:opacity .2s,color .2s}
-  .guide-promptline.has-text .send{opacity:1;pointer-events:auto}
-  .guide-promptline .send:hover{color:var(--accent2)}
-  .atlas-btn{justify-self:end;display:flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;color:var(--muted);font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:6px 0;transition:color .2s}
-  .atlas-btn:hover{color:var(--ink)}
-  .atlas-btn .dots{display:flex;gap:3px}
-  .atlas-btn .dots i{width:3px;height:3px;border-radius:50%;background:currentColor;display:block}
-  .atlas-btn .dots i:nth-child(3){background:var(--accent)}
-  .guide-plumb{position:fixed;top:104px;left:50%;width:1px;height:0;background:var(--accent);z-index:1201;opacity:0;transform-origin:top}
-  .guide-scrim{position:fixed;inset:0;z-index:1202;background:rgba(8,16,21,.88);-webkit-backdrop-filter:blur(14px) saturate(.9);backdrop-filter:blur(14px) saturate(.9);clip-path:inset(0 0 100% 0);transition:clip-path .62s cubic-bezier(.16,.84,.34,1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:112px 24px 40px;pointer-events:none}
-  .guide-scrim.open{clip-path:inset(0 0 0 0);pointer-events:auto}
-  .guide-scrim .close{position:absolute;top:16px;right:clamp(16px,4vw,34px);background:none;border:0;cursor:pointer;color:var(--muted);font-size:13px;letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:8px;transition:color .2s}
-  .guide-scrim .close:hover{color:var(--ink)}
-  .guide-scrim .close svg{width:13px;height:13px}
-  .guide-card{max-width:680px;width:100%;text-align:center;opacity:0;transform:translateY(10px);transition:opacity .5s cubic-bezier(.16,.84,.34,1) .18s,transform .5s cubic-bezier(.16,.84,.34,1) .18s}
-  .guide-scrim.open .guide-card{opacity:1;transform:none}
-  .guide-eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin:0 0 18px}
-  .guide-framing{font-family:var(--serif);font-size:clamp(26px,4.4vw,40px);line-height:1.22;font-weight:400;margin:0 auto;max-width:14ch}
-  .guide-framing .echo{color:var(--muted);font-style:italic}
-  .guide-micro{font-size:12.5px;line-height:1.7;color:var(--muted);max-width:46ch;margin:22px auto 0}
-  .guide-continue{display:inline-flex;align-items:center;gap:11px;margin-top:30px;background:none;border:1px solid var(--accent);color:var(--ink);cursor:pointer;font-family:var(--sans);font-size:12px;letter-spacing:.18em;text-transform:uppercase;padding:13px 26px;border-radius:1px;text-decoration:none;transition:background .25s,color .25s}
-  .guide-continue:hover{background:var(--accent);color:#0a0d13}
-  .guide-continue svg{width:15px;height:11px}
-  .guide-constellation{margin-top:clamp(34px,6vh,64px);width:100%;max-width:760px;opacity:0;transition:opacity .55s cubic-bezier(.16,.84,.34,1) .34s}
-  .guide-scrim.open .guide-constellation{opacity:1}
-  .guide-const-label{font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:20px;position:relative}
-  .guide-const-label::before,.guide-const-label::after{content:"";position:absolute;top:50%;width:clamp(20px,12%,90px);height:1px;background:rgba(236,223,194,.14)}
-  .guide-const-label::before{left:0}
-  .guide-const-label::after{right:0}
-  .guide-atlases{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 14px}
-  .guide-atlas-link{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--ink);padding:12px 16px;border:1px solid transparent;border-radius:2px;transition:border-color .2s,background .2s;min-width:120px}
-  .guide-atlas-link:hover{border-color:rgba(236,223,194,.26);background:rgba(236,229,214,.03)}
-  .guide-atlas-link .glyph{width:18px;height:18px;color:var(--muted);transition:color .2s}
-  .guide-atlas-link:hover .glyph{color:var(--accent)}
-  .guide-atlas-link .nm{font-family:var(--serif);font-size:17px;line-height:1.1;text-align:center}
-  .guide-atlas-link .tag{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);min-height:11px}
-  .guide-atlas-link.here{cursor:default}
-  .guide-atlas-link.here .glyph,.guide-atlas-link.here .tag{color:var(--accent)}
-  .guide-atlas-link.here:hover{border-color:transparent;background:none}
-  .rail{position:absolute;z-index:1000;top:126px;left:14px;width:236px;background:rgba(17,21,29,.93);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(8px);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100% - 148px)}
+  .rail{position:absolute;z-index:1000;top:78px;left:14px;width:236px;background:rgba(17,21,29,.93);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(8px);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100% - 100px)}
   .rail h2{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin:0;padding:13px 14px 9px}
   .rail .ops{overflow-y:auto;padding:0 8px 8px}
   .filterbtn{margin:11px 10px 4px;padding:11px 12px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,rgba(202,164,78,.16),rgba(202,164,78,.05));border:1px solid rgba(202,164,78,.5);transition:.16s;color:var(--ink)}
@@ -184,70 +138,23 @@
   .leaflet-bar{border:1px solid var(--line);box-shadow:var(--shadow)}
   .leaflet-bar a{background:var(--panel2);color:var(--ink);border-bottom-color:var(--line)}
   .leaflet-bar a:hover{background:#1d232f}
-  @media (max-width:760px){.topbar{gap:8px;padding:9px 12px 12px}.topbar h1{font-size:20px}.topbar p{display:none}.guide-ribbon{grid-template-columns:minmax(0,1fr) auto;gap:12px}.guide-promptline input{font-size:16px}.atlas-btn span:not(.dots){display:none}.guide-plumb{top:94px}.guide-scrim{padding-top:100px}.guide-atlas-link{min-width:44%;padding:10px}}
-  @media (max-width:640px){.rail{display:block;top:118px;left:12px;right:12px;width:auto;max-height:none;background:transparent;border:0;box-shadow:none;backdrop-filter:none}.rail h2,.rail .ops,.rail .reset{display:none}.filterbtn{margin:0;background:rgba(17,21,29,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}.datepop{left:12px;right:12px;top:180px;width:auto;max-width:none}.panel{width:100%}.partner span{display:none}.logochip.mark{height:40px;padding:3px 6px}.logochip.mark img{height:28px;max-width:104px}.hint{display:none}.leaflet-bottom.leaflet-left{bottom:18px}}
-  @media (max-width:520px){.topbar-main{gap:9px}.topbar .brand{gap:8px;min-width:0}.topbar h1{font-size:18px;white-space:normal}.topbar h1 a.bev{display:block;font-size:14px;margin-top:2px}.logochip.ata{height:34px;padding:3px 5px}.logochip.ata img{height:25px;max-width:88px}.guide-ribbon{grid-template-columns:1fr auto}.guide-promptline{gap:8px}.guide-promptline .send{font-size:0}.guide-promptline .send::after{content:"Go";font-size:11px}.rail{top:126px}.datepop{top:188px}}
-  @media (prefers-reduced-motion:reduce){.guide-scrim,.guide-card,.guide-constellation{transition-duration:.001ms !important}}
+  @media (max-width:640px){.rail{display:block;top:70px;left:12px;right:12px;width:auto;max-height:none;background:transparent;border:0;box-shadow:none;backdrop-filter:none}.rail h2,.rail .ops,.rail .reset{display:none}.filterbtn{margin:0;background:rgba(17,21,29,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}.datepop{left:12px;right:12px;top:132px;width:auto;max-width:none}.panel{width:100%}.topbar p{display:none}.partner span{display:none}.logochip.mark{height:42px}.logochip.mark img{height:30px;max-width:120px}.hint{display:none}.leaflet-bottom.leaflet-left{bottom:18px}}
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div class="topbar">
-  <div class="topbar-main">
-    <div class="brand">
-      <a class="logochip mark" href="https://www.expeditionbucketlist.com" target="_blank" rel="noopener"><img src="https://images.squarespace-cdn.com/content/57d86bcd46c3c49c625850a1/54c90494-d588-412d-9643-5d5650d856fd/ebl+2026+Gemini.png?content-type=image%2Fpng" alt="Expedition Bucket List"></a>
-      <div>
-        <h1>Luxury Hotel Yacht <span>Atlas</span><a class="bev" href="https://bevvip.com" target="_blank" rel="noopener"> - BeVvip.com</a></h1>
-        <p>Explore luxury hotel brand yachts by region &middot; tap a pin to see every sailing</p>
-      </div>
+  <div class="brand">
+    <a class="logochip mark" href="https://www.expeditionbucketlist.com" target="_blank" rel="noopener"><img src="https://images.squarespace-cdn.com/content/57d86bcd46c3c49c625850a1/54c90494-d588-412d-9643-5d5650d856fd/ebl+2026+Gemini.png?content-type=image%2Fpng" alt="Expedition Bucket List"></a>
+    <div>
+      <h1>Luxury Hotel Yacht <span>Atlas</span><a class="bev" href="https://bevvip.com" target="_blank" rel="noopener"> - BeVvip.com</a></h1>
+      <p>Explore luxury hotel brand yachts by region &middot; tap a pin to see every sailing</p>
     </div>
-    <a class="partner" href="https://www.aspentraveladvisors.com" target="_blank" rel="noopener">
-      <span>Curated&nbsp;by</span>
-      <div class="logochip ata"><img src="https://images.squarespace-cdn.com/content/v1/57d86bcd46c3c49c625850a1/8c7b524b-9951-4a51-aaf2-44982357ccfe/ATA+logo+clear+2025+black.png?format=750w" alt="Aspen Travel Advisors"></div>
-    </a>
   </div>
-
-  <div class="guide-ribbon" aria-label="The Guide ribbon">
-    <div class="guide-promptline" id="guidePromptLine">
-      <svg class="q" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/>
-        <path d="M16 16 L21 21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-      <input id="guidePrompt" type="text" autocomplete="off" aria-label="Ask The Guide where you're headed next" placeholder="Where are you headed next?">
-      <button class="send" id="guideSend" aria-label="Send to The Guide">Send</button>
-    </div>
-
-    <button class="atlas-btn" id="guideAtlasBtn" aria-label="See all atlases">
-      <span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-      <span>Atlas</span>
-    </button>
-  </div>
-</div>
-<div class="guide-plumb" id="guidePlumb" aria-hidden="true"></div>
-<div class="guide-scrim" id="guideScrim" role="dialog" aria-modal="true" aria-label="The Guide">
-  <button class="close" id="guideClose" aria-label="Close">
-    Close
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 5 L19 19 M19 5 L5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-    </svg>
-  </button>
-
-  <div class="guide-card">
-    <p class="guide-eyebrow" id="guideEyebrow">The Guide</p>
-    <p class="guide-framing" id="guideFraming">A region, a season, a hotel,<br>or the kind of journey you're craving.</p>
-    <p class="guide-micro">The Guide surfaces the right possibilities and frames the trip. It does not quote final pricing; a human advisor closes and books.</p>
-    <a class="guide-continue" id="guideContinue" href="https://bevvip-concierge.vercel.app/" target="_blank" rel="noopener">
-      Continue with The Guide
-      <svg viewBox="0 0 24 12" fill="none" aria-hidden="true">
-        <path d="M1 6 H21 M16 1 L22 6 L16 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </a>
-  </div>
-
-  <nav class="guide-constellation" aria-label="Atlas family">
-    <div class="guide-const-label">The Atlas family</div>
-    <div class="guide-atlases" id="guideAtlases"></div>
-  </nav>
+  <a class="partner" href="https://www.aspentraveladvisors.com" target="_blank" rel="noopener">
+    <span>Curated&nbsp;by</span>
+    <div class="logochip ata"><img src="https://images.squarespace-cdn.com/content/v1/57d86bcd46c3c49c625850a1/8c7b524b-9951-4a51-aaf2-44982357ccfe/ATA+logo+clear+2025+black.png?format=750w" alt="Aspen Travel Advisors"></div>
+  </a>
 </div>
 <aside class="rail">
   <div class="filterbtn" id="dateBtn">
@@ -306,140 +213,6 @@
 </section>
 <script src="vendor/leaflet.min.js"></script>
 <script>
-(function(){
-  "use strict";
-
-  const ATLASES = [
-    {nm:"VIP Hotels", tag:"", url:"https://luxury-hotel-atlas-two.vercel.app", glyph:"hotel"},
-    {nm:"Expedition Cruises", tag:"", url:"https://expedition-cruise-map.vercel.app", glyph:"cruise"},
-    {nm:"Private Jet", tag:"Journeys", url:"https://private-jet-expeditions.vercel.app", glyph:"jet"},
-    {nm:"Hotel Yachts", tag:"You are here", url:"https://luxury-hotel-brand-yacht-atlas.vercel.app", glyph:"yacht", here:true},
-    {nm:"World Cruises", tag:"", url:"https://world-cruise-atlas.vercel.app", glyph:"world"}
-  ];
-  const GUIDE_URL = "https://bevvip-concierge.vercel.app/";
-  const GLYPHS = {
-    hotel:'<path d="M3 21h18M5 21V8l7-4 7 4v13M9 12h2M13 12h2M9 16h2M13 16h2" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    cruise:'<path d="M4 17l1.5-5h13L20 17M3 17h18l-1.5 3H4.5L3 17M12 12V5M9 7h6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    jet:'<path d="M21 12l-9 2-3 5-2-1 1-4-4-1-2 2-1.5-.7L3 12 1.5 9.7 3 9l2 2 4-1-1-4 2-1 3 5 9 2z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round"/>',
-    yacht:'<path d="M5 19h14M6 19l-1-7 8-6 6 6-2 7M12 6V3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    world:'<circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M3.5 12h17M12 3.5v17M5.5 7c2 1.6 11 1.6 13 0M5.5 17c2-1.6 11-1.6 13 0" stroke="currentColor" stroke-width="1.1" fill="none"/>'
-  };
-
-  const wrap = document.getElementById("guideAtlases");
-  ATLASES.forEach(a => {
-    const el = document.createElement(a.here ? "div" : "a");
-    el.className = "guide-atlas-link" + (a.here ? " here" : "");
-    if(!a.here){
-      el.href = a.url;
-      el.target = "_blank";
-      el.rel = "noopener";
-    }
-    el.innerHTML =
-      '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true">' + GLYPHS[a.glyph] + '</svg>' +
-      '<span class="nm">' + a.nm + '</span>' +
-      '<span class="tag">' + (a.tag || "") + '</span>';
-    wrap.appendChild(el);
-  });
-
-  const pl = document.getElementById("guidePromptLine");
-  const input = document.getElementById("guidePrompt");
-  const send = document.getElementById("guideSend");
-  const atlasBtn = document.getElementById("guideAtlasBtn");
-  const scrim = document.getElementById("guideScrim");
-  const close = document.getElementById("guideClose");
-  const plumb = document.getElementById("guidePlumb");
-  const framing = document.getElementById("guideFraming");
-  const eyebrow = document.getElementById("guideEyebrow");
-  const cont = document.getElementById("guideContinue");
-  let lastFocus = null;
-
-  const examples = [
-    "Where are you headed next?",
-    "Aman vs. Orient Express hotel yachts",
-    "Four Seasons in the Caribbean",
-    "Ritz-Carlton Yacht Collection in the Med",
-    "World cruises departing January 2027"
-  ];
-  let exampleIndex = 0;
-  setInterval(() => {
-    if(document.activeElement === input || input.value) return;
-    exampleIndex = (exampleIndex + 1) % examples.length;
-    input.placeholder = examples[exampleIndex];
-  }, 3600);
-
-  input.addEventListener("input", () => {
-    pl.classList.toggle("has-text", Boolean(input.value.trim()));
-  });
-
-  function openScrim(query){
-    lastFocus = document.activeElement;
-    if(query){
-      eyebrow.textContent = "The Guide is charting";
-      framing.innerHTML = 'Charting <span class="echo">"' + escapeHtml(query) + '"</span> across the Atlas.';
-      cont.href = GUIDE_URL + "?q=" + encodeURIComponent(query);
-    } else {
-      eyebrow.textContent = "The Guide";
-      framing.innerHTML = "A region, a season, a hotel,<br>or the kind of journey you're craving.";
-      cont.href = GUIDE_URL;
-    }
-    scrim.classList.add("open");
-    setTimeout(() => close.focus(), 120);
-  }
-
-  function closeScrim(){
-    scrim.classList.remove("open");
-    if(lastFocus) lastFocus.focus();
-  }
-
-  function dropAndOpen(query){
-    if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){
-      openScrim(query);
-      return;
-    }
-    plumb.style.transition = "none";
-    plumb.style.height = "0";
-    plumb.style.opacity = "1";
-    void plumb.offsetWidth;
-    plumb.style.transition = "height .34s cubic-bezier(.16,.84,.34,1)";
-    plumb.style.height = "46vh";
-    setTimeout(() => {
-      plumb.style.opacity = "0";
-      plumb.style.transition = "opacity .3s";
-      openScrim(query);
-    }, 300);
-  }
-
-  function submitGuide(){
-    dropAndOpen(input.value.trim());
-  }
-
-  send.addEventListener("click", submitGuide);
-  input.addEventListener("keydown", e => {
-    if(e.key === "Enter"){
-      e.preventDefault();
-      submitGuide();
-    }
-  });
-  atlasBtn.addEventListener("click", () => dropAndOpen(""));
-  close.addEventListener("click", closeScrim);
-  scrim.addEventListener("click", e => {
-    if(e.target === scrim) closeScrim();
-  });
-  document.addEventListener("keydown", e => {
-    if(e.key === "Escape" && scrim.classList.contains("open")) closeScrim();
-  });
-
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, c => ({
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#39;"
-    }[c]));
-  }
-})();
-
   // ── DATA LOADING ─────────────────────────────────────────────────────────
   let BRANDS, REGIONS, TRIPS, PORTS;
   const _dataReady = fetch('itinerary.json')
@@ -1252,17 +1025,15 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
     html{width:100%;overflow:hidden}
     body{touch-action:manipulation}
     #map{max-width:100vw;overflow:hidden}
-    .topbar{align-items:stretch;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 10px 10px}
-    .topbar-main{width:100%;gap:9px}
+    .topbar{align-items:flex-start;gap:9px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px}
     .topbar .brand{min-width:0;gap:9px}
-    .topbar h1{max-width:none;overflow:visible;text-overflow:clip;white-space:normal;font-size:18px;line-height:1.05}
-    .topbar h1 a.bev{display:block;font-size:14px;margin-top:2px}
+    .topbar h1{max-width:calc(100vw - 152px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:18px;line-height:1.05}
     .logochip.mark{height:38px;padding:2px 5px}
     .logochip.mark img{height:28px;max-width:104px}
     .partner{align-self:flex-start}
-    .rail{top:calc(118px + env(safe-area-inset-top)) !important;left:10px !important;right:10px !important}
-    body.rail-shown .rail{max-height:calc(100dvh - 200px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important}
-    .datepop{top:calc(180px + env(safe-area-inset-top)) !important;left:10px !important;right:10px !important;max-height:calc(100dvh - 242px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;overflow-y:auto}
+    .rail{top:calc(64px + env(safe-area-inset-top)) !important;left:10px !important;right:10px !important}
+    body.rail-shown .rail{max-height:calc(100dvh - 146px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important}
+    .datepop{top:calc(126px + env(safe-area-inset-top)) !important;left:10px !important;right:10px !important;max-height:calc(100dvh - 188px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;overflow-y:auto}
     .portpop{width:auto !important}
     .portlist{max-height:32dvh}
     .months{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -1279,7 +1050,7 @@ if(_routeBack){ _routeBack.addEventListener('click',()=>{ document.body.classLis
     .helpmodal{max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:24px 18px 18px}
   }
   @media (max-width:380px){
-    .topbar h1{max-width:none;font-size:16px}
+    .topbar h1{max-width:calc(100vw - 132px);font-size:16px}
     .logochip.mark img{max-width:86px}
     .dockbtn{padding:0 10px}
   }
