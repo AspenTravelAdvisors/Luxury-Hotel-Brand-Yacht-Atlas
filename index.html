@@ -37,13 +37,7 @@
   .partner{pointer-events:auto;margin-left:auto;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--muted);transition:.15s}
   .partner:hover{color:var(--ink)}
   .partner span{font-size:11px;letter-spacing:.6px;text-transform:uppercase;font-weight:600;white-space:nowrap}
-  .guide-ribbon{pointer-events:auto;display:grid;grid-template-columns:auto minmax(220px,560px) auto;align-items:center;gap:18px;width:100%;max-width:1180px;margin:0 auto;color:var(--ink)}
-  .guide-mark{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:inherit}
-  .guide-mark svg{width:22px;height:22px;display:block;flex:0 0 auto}
-  .guide-mark .wmwrap{display:flex;flex-direction:column;min-width:0}
-  .guide-mark .wm{font-family:var(--serif);font-size:19px;letter-spacing:.02em;line-height:1;white-space:nowrap}
-  .guide-mark .wm b{font-weight:600;color:var(--accent)}
-  .guide-mark .sub{font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+  .guide-ribbon{pointer-events:auto;display:grid;grid-template-columns:minmax(220px,560px) auto;align-items:center;gap:18px;width:100%;max-width:1180px;margin:0 auto;color:var(--ink)}
   .guide-promptline{display:flex;align-items:center;gap:12px;min-width:0;border-bottom:1px solid rgba(236,223,194,.25);padding:6px 2px 8px;transition:border-color .2s}
   .guide-promptline:focus-within{border-color:var(--accent)}
   .guide-promptline .q{flex:0 0 auto;width:15px;height:15px;color:var(--muted);opacity:.9}
@@ -190,9 +184,9 @@
   .leaflet-bar{border:1px solid var(--line);box-shadow:var(--shadow)}
   .leaflet-bar a{background:var(--panel2);color:var(--ink);border-bottom-color:var(--line)}
   .leaflet-bar a:hover{background:#1d232f}
-  @media (max-width:760px){.topbar{gap:8px;padding:9px 12px 12px}.topbar h1{font-size:20px}.topbar p{display:none}.guide-ribbon{grid-template-columns:auto minmax(0,1fr) auto;gap:12px}.guide-mark .sub{display:none}.guide-promptline input{font-size:16px}.atlas-btn span:not(.dots){display:none}.guide-plumb{top:94px}.guide-scrim{padding-top:100px}.guide-atlas-link{min-width:44%;padding:10px}}
+  @media (max-width:760px){.topbar{gap:8px;padding:9px 12px 12px}.topbar h1{font-size:20px}.topbar p{display:none}.guide-ribbon{grid-template-columns:minmax(0,1fr) auto;gap:12px}.guide-promptline input{font-size:16px}.atlas-btn span:not(.dots){display:none}.guide-plumb{top:94px}.guide-scrim{padding-top:100px}.guide-atlas-link{min-width:44%;padding:10px}}
   @media (max-width:640px){.rail{display:block;top:118px;left:12px;right:12px;width:auto;max-height:none;background:transparent;border:0;box-shadow:none;backdrop-filter:none}.rail h2,.rail .ops,.rail .reset{display:none}.filterbtn{margin:0;background:rgba(17,21,29,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}.datepop{left:12px;right:12px;top:180px;width:auto;max-width:none}.panel{width:100%}.partner span{display:none}.logochip.mark{height:40px;padding:3px 6px}.logochip.mark img{height:28px;max-width:104px}.hint{display:none}.leaflet-bottom.leaflet-left{bottom:18px}}
-  @media (max-width:520px){.topbar-main{gap:9px}.topbar .brand{gap:8px;min-width:0}.topbar h1{font-size:18px;white-space:normal}.topbar h1 a.bev{display:block;font-size:14px;margin-top:2px}.logochip.ata{height:34px;padding:3px 5px}.logochip.ata img{height:25px;max-width:88px}.guide-ribbon{grid-template-columns:auto 1fr auto}.guide-mark .wmwrap{display:none}.guide-promptline{gap:8px}.guide-promptline .send{font-size:0}.guide-promptline .send::after{content:"Go";font-size:11px}.rail{top:126px}.datepop{top:188px}}
+  @media (max-width:520px){.topbar-main{gap:9px}.topbar .brand{gap:8px;min-width:0}.topbar h1{font-size:18px;white-space:normal}.topbar h1 a.bev{display:block;font-size:14px;margin-top:2px}.logochip.ata{height:34px;padding:3px 5px}.logochip.ata img{height:25px;max-width:88px}.guide-ribbon{grid-template-columns:1fr auto}.guide-promptline{gap:8px}.guide-promptline .send{font-size:0}.guide-promptline .send::after{content:"Go";font-size:11px}.rail{top:126px}.datepop{top:188px}}
   @media (prefers-reduced-motion:reduce){.guide-scrim,.guide-card,.guide-constellation{transition-duration:.001ms !important}}
 </style>
 </head>
@@ -213,20 +207,7 @@
     </a>
   </div>
 
-  <div class="guide-ribbon" aria-label="Base Camp guide ribbon">
-    <a class="guide-mark" href="https://bevvip-concierge.vercel.app/" target="_blank" rel="noopener" aria-label="Base Camp - The Guide">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="9.2" stroke="#C6A15B" stroke-width="1"/>
-        <path d="M12 3.2 L13.6 12 L12 20.8 L10.4 12 Z" fill="#C6A15B"/>
-        <path d="M3.2 12 L12 10.6 L20.8 12 L12 13.4 Z" fill="rgba(236,229,214,.55)"/>
-        <circle cx="12" cy="12" r="1.1" fill="#0C1A22" stroke="#C6A15B" stroke-width="1"/>
-      </svg>
-      <span class="wmwrap">
-        <span class="wm">Base <b>Camp</b></span>
-        <span class="sub">The Guide</span>
-      </span>
-    </a>
-
+  <div class="guide-ribbon" aria-label="The Guide ribbon">
     <div class="guide-promptline" id="guidePromptLine">
       <svg class="q" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/>
