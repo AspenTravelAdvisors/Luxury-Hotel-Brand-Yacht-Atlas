@@ -144,6 +144,10 @@
   .card .tracebtn:active{transform:scale(.97)}
   .card .tracebtn.on{background:linear-gradient(135deg,#caa44e,#ffe9b0);color:#3a2c0d;border-color:#fff}
   .card .tracebtn.on:hover{filter:brightness(1.04)}
+  .card .askguide{display:inline-flex;align-items:center;gap:6px;margin-top:9px;margin-left:8px;padding:6px 11px;border-radius:9px;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--accent);background:transparent;border:1px solid var(--accent);-webkit-tap-highlight-color:transparent;transition:.15s}
+  .card .askguide:hover{background:var(--accent);color:#2a1f08;border-color:var(--accent)}
+  .card .askguide:active{transform:scale(.97)}
+  .panel .cardteaser{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 16px 0;padding:8px 12px;border:1px dashed var(--accent);border-radius:10px;color:var(--accent);font-size:11.5px;font-weight:600;letter-spacing:.2px;text-align:center;line-height:1.3;opacity:.92}
   body.tracing .rmarker{opacity:.28;transition:opacity .3s ease}
   body.tracing .rmarker:hover{opacity:.85}
   body.tracing .rmarker.route{opacity:1}
@@ -292,6 +296,7 @@
     <h3 id="pTitle">Region</h3>
     <div class="sub" id="pSub"></div>
   </div>
+  <div class="cardteaser">&#128071; Click any result for ship photos, day-to-day details &amp; more</div>
   <div class="list" id="pList"></div>
 </section>
 <script src="vendor/leaflet.min.js"></script>
@@ -832,6 +837,20 @@ document.getElementById('reset').addEventListener('click',()=>{
   activeIds.clear();activeSearchTerms=[];activeRegions.clear();
   applyFilter();document.getElementById('reset').classList.remove('show');refreshActivePanel();
 });
+/* ===== Ask The Guide — opens BeVvip Base Camp pre-filled with this product ===== */
+const GUIDE_URL='https://bevvip-concierge.vercel.app/';
+function askGuideBtn(ctx,link){
+  const b=document.createElement('span');
+  b.className='askguide';b.setAttribute('role','button');b.tabIndex=0;
+  b.title='Ask The Guide about this';
+  b.innerHTML='&#10022; Ask The Guide';
+  const full=ctx+(link?(' (Virtuoso listing: '+link+')'):'');
+  function go(e){ e.preventDefault();e.stopPropagation();
+    window.open(GUIDE_URL+'?ask='+encodeURIComponent(full)+'&src=yacht','_blank','noopener'); }
+  b.addEventListener('click',go);
+  b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ')go(e); });
+  return b;
+}
 function makeCard(t){
   const a=document.createElement('a');a.className='card';a.href=t.u;a.target='_blank';a.rel='noopener';
   a._trip=t;
@@ -860,6 +879,10 @@ function makeCard(t){
     trace.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ')doTrace(e); });
     meta.appendChild(trace);
   }
+  meta.appendChild(askGuideBtn(
+    'I\'m looking at the "'+t.title+'" yacht voyage on the BeVvip Yacht Atlas — '
+    +BRANDS[t.brand].short+' aboard '+t.ship+', '+t.dates
+    +'. Route: '+t.route+'. Can you tell me more about it and help me plan it through BeVvip?', t.u));
   return a;
 }
 function sortTrips(sailings){
