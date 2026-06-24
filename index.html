@@ -38,6 +38,8 @@
   .partner span{font-size:11px;letter-spacing:.6px;text-transform:uppercase;font-weight:600;white-space:nowrap}
   .rail{position:absolute;z-index:1000;top:78px;left:14px;width:236px;background:rgba(17,21,29,.93);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(8px);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100% - 100px)}
   .rail h2{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin:0;padding:13px 14px 9px}
+  .rail .railx{position:absolute;top:10px;right:10px;z-index:5;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}
+  .rail .railx:hover{border-color:var(--accent);color:var(--accent)}
   .rail .ops{overflow-y:auto;padding:0 8px 8px}
   .filterbtn{margin:11px 10px 4px;padding:11px 12px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,rgba(202,164,78,.16),rgba(202,164,78,.05));border:1px solid rgba(202,164,78,.5);transition:.16s;color:var(--ink)}
   .filterbtn:hover{background:linear-gradient(135deg,rgba(202,164,78,.26),rgba(202,164,78,.08))}
@@ -236,6 +238,7 @@
 
 <aside class="rail" id="rail">
   <div class="sheetHandle" id="railHandle" aria-hidden="true"><span></span></div>
+  <button type="button" class="railx" id="railClose" aria-label="Close filters">&#10005;</button>
   <div class="filterbtn" id="dateBtn">
     <div class="ico">&#128197;</div>
     <div>
@@ -562,7 +565,7 @@ function drawRoute(trip,fit){
   }
 }
 
-const markers={};let activeBrand=null,activeView=null;const activeMonths=new Set();
+const markers={};let activeBrands=new Set(),activeView=null;const activeMonths=new Set();
 const activeRegions=new Set();
 const activeIds=new Set();let activeSearchTerms=[];
 let activePort=null,activePortRole='any',portView=null;
@@ -602,7 +605,7 @@ function isPastTrip(t){const td=new Date();td.setHours(0,0,0,0);return new Date(
 /* matchesNonRegion = every filter except the region filter (used for pin counts,
    so each region pin reflects how many qualifying sailings reach it) */
 function matchesNonRegion(t){return !isPastTrip(t)
-  && (!activeBrand||t.brand===activeBrand)
+  && (!activeBrands.size||activeBrands.has(t.brand))
   && (!activeMonths.size||activeMonths.has(t.monthKey))
   && (!activeIds.size||activeIds.has(String(t.id))||activeIds.has('yc_'+t.id))
   && textMatches(t)
@@ -649,7 +652,7 @@ function updateDateSummary(){
   summary.textContent=labels.length===1?labels[0]:labels.length+' months selected';
 }
 function updateMarkerCounts(){
-  const anyFilter=!!activeBrand||activeMonths.size||activeIds.size||activeSearchTerms.length||!!activePort||activeRegions.size;
+  const anyFilter=!!activeBrands.size||activeMonths.size||activeIds.size||activeSearchTerms.length||!!activePort||activeRegions.size;
   Object.entries(markers).forEach(([key,obj])=>{
     // Dynamic count: how many qualifying sailings reach this region right now (ignores the region toggle itself)
     const count=obj.sailings.filter(matchesNonRegion).length;
@@ -709,7 +712,7 @@ function portAgg(role){
   const agg={};
   TRIPS.forEach(t=>{
     if(isPastTrip(t))return;
-    if(activeBrand&&t.brand!==activeBrand)return;
+    if(activeBrands.size&&!activeBrands.has(t.brand))return;
     if(activeMonths.size&&!activeMonths.has(t.monthKey))return;
     const r=tripPortRoles(t);
     const add=(name,k)=>{ if(!name||!PORTS[name])return; const a=agg[name]||(agg[name]={name,embark:0,disembark:0,call:0,seen:new Set()}); a[k]++; a.seen.add(t.id); };
@@ -798,12 +801,12 @@ Object.keys(BRANDS).forEach(key=>{
   row.appendChild(lg);row.appendChild(txt);row.appendChild(dot);row.addEventListener('click',()=>toggleBrand(key,row));opList.appendChild(row);
 });
 function toggleBrand(key,row){
-  const wasActive=activeBrand===key;document.querySelectorAll('.op:not(.reg)').forEach(r=>r.classList.remove('active'));
-  if(wasActive){activeBrand=null;}else{activeBrand=key;row.classList.add('active');}
+  if(activeBrands.has(key)){activeBrands.delete(key);row.classList.remove('active');}
+  else{activeBrands.add(key);row.classList.add('active');}
   applyFilter();syncReset();
   refreshActivePanel();
 }
-function syncReset(){document.getElementById('reset').classList.toggle('show',!!activeBrand||activeRegions.size||activeIds.size||activeSearchTerms.length);}
+function syncReset(){document.getElementById('reset').classList.toggle('show',!!activeBrands.size||activeRegions.size||activeIds.size||activeSearchTerms.length);}
 /* ===== Region filter rows + collapsible section accordion ===== */
 const regionListEl=document.getElementById('regionList');
 Object.keys(REGIONS).forEach(key=>{
@@ -833,7 +836,7 @@ function applyFilter(){
   if(window.__atlasSetApplyCount) window.__atlasSetApplyCount(allMatchingTrips().length);
 }
 document.getElementById('reset').addEventListener('click',()=>{
-  activeBrand=null;document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
+  activeBrands.clear();document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
   activeIds.clear();activeSearchTerms=[];activeRegions.clear();
   applyFilter();document.getElementById('reset').classList.remove('show');refreshActivePanel();
 });
@@ -858,7 +861,7 @@ function makeCard(t){
   meta.innerHTML='<div class="nm">'+t.title+'</div><div class="dt">'+t.dates+'</div><div class="go">'+BRANDS[t.brand].short+' &middot; '+t.ship+' &#8599;</div><div class="rt">'+t.route+'</div>';
   const ar=document.createElement('div');ar.className='arrow';ar.textContent='›';
   a.appendChild(lg);a.appendChild(meta);a.appendChild(ar);
-  if(activeBrand&&t.brand===activeBrand)a.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  if(activeBrands.size&&activeBrands.has(t.brand))a.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
   if(isTraceable(t)){
     a.addEventListener('mouseenter',()=>{ if(!routeLocked){ pinnedTrip=t; drawRoute(t,false); } });
     const trace=document.createElement('span');
@@ -887,7 +890,7 @@ function makeCard(t){
 }
 function sortTrips(sailings){
   return filteredSailings(sailings).slice().sort((a,b)=>{
-    if(activeBrand){const am=a.brand===activeBrand,bm=b.brand===activeBrand;if(am!==bm)return am?-1:1;}
+    if(activeBrands.size){const am=activeBrands.has(a.brand),bm=activeBrands.has(b.brand);if(am!==bm)return am?-1:1;}
     return dateSort(a,b)||a.title.localeCompare(b.title);
   });
 }
@@ -952,19 +955,19 @@ function applyDeepLink(){
   if(ids) ids.split(',').map(s=>s.trim()).filter(Boolean).forEach(id=>activeIds.add(id));
   const month=sp.get('month');
   if(month){month.split(',').map(s=>s.trim()).filter(Boolean).forEach(m=>{activeMonths.add(m);const b=document.querySelector('.month[data-month="'+cssEsc(m)+'"]');if(b)b.classList.add('active');});if(activeMonths.size){document.getElementById('dateBtn').classList.add('active');updateDateSummary();}}
-  const brand=findBrand(sp.get('brand')||sp.get('operator'));
-  if(brand){activeBrand=brand;const row=document.querySelector('.op[data-brand="'+cssEsc(brand)+'"]');if(row)row.classList.add('active');}
+  const brandParam=sp.get('brand')||sp.get('operator');
+  if(brandParam){brandParam.split(',').map(s=>s.trim()).filter(Boolean).forEach(b=>{const brand=findBrand(b);if(brand){activeBrands.add(brand);const row=document.querySelector('.op[data-brand="'+cssEsc(brand)+'"]');if(row)row.classList.add('active');}});}
   const regions=sp.get('regions');
   if(regions){regions.split(',').map(s=>s.trim()).filter(Boolean).forEach(k=>{if(REGIONS[k]&&markers[k]){activeRegions.add(k);const r=document.querySelector('.reg[data-region="'+cssEsc(k)+'"]');if(r)r.classList.add('active');}});if(activeRegions.size){const rh=document.getElementById('regionHead'),rl=document.getElementById('regionList');if(rh)rh.classList.remove('collapsed');if(rl)rl.classList.remove('collapsed');}}
   activeSearchTerms=[...words(sp.get('q')),...words(sp.get('country'))];
-  if(activeIds.size||activeBrand||activeRegions.size||activeSearchTerms.length)document.getElementById('reset').classList.add('show');
+  if(activeIds.size||activeBrands.size||activeRegions.size||activeSearchTerms.length)document.getElementById('reset').classList.add('show');
   const portParam=sp.get('port');
   if(portParam&&PORTS[portParam]){const role=sp.get('portrole');if(role)activePortRole=role;selectPort(portParam);}
   applyFilter();
   const region=findRegionKey(sp.get('region'));
   if(region)openRegion(region);
   else if(portParam&&PORTS[portParam]){/* port panel already opened by selectPort */}
-  else if(activeIds.size||activeBrand||activeMonths.size||activeRegions.size||activeSearchTerms.length)openSearchResults(activeIds.size?'Guide shortlist':'Filtered sailings');
+  else if(activeIds.size||activeBrands.size||activeMonths.size||activeRegions.size||activeSearchTerms.length)openSearchResults(activeIds.size?'Guide shortlist':'Filtered sailings');
 }
 applyDeepLink();
 function closePanel(opts){
@@ -981,7 +984,7 @@ function closePanel(opts){
 }
 /* Full reset: clear brand + port filters, close the panel, drop routes, un-dim pins */
 function showAll(){
-  activeBrand=null; document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
+  activeBrands.clear(); document.querySelectorAll('.op').forEach(r=>r.classList.remove('active'));
   activeIds.clear(); activeSearchTerms=[]; activeRegions.clear();
   document.getElementById('reset').classList.remove('show');
   clearPortFilter(); applyFilter(); closePanel();
@@ -992,7 +995,7 @@ window.__atlasShareUrl=function(){
   var p=new URLSearchParams();
   if(activePort){ p.set('port',activePort); if(activePortRole&&activePortRole!=='any')p.set('portrole',activePortRole); }
   if(activeView&&activeView!=='__search__')p.set('region',activeView);
-  if(activeBrand)p.set('brand',activeBrand);
+  if(activeBrands.size)p.set('brand',[...activeBrands].join(','));
   if(activeMonths.size)p.set('month',[...activeMonths].join(','));
   if(activeRegions.size)p.set('regions',[...activeRegions].join(','));
   if(activeSearchTerms.length)p.set('q',activeSearchTerms.join(' '));
@@ -1092,6 +1095,8 @@ setTimeout(function(){ if(window.hideAtlasVeil) window.hideAtlasVeil(); },180);
     setIcon(panelPill, body.classList.contains('panel-collapsed')?'&#8249;':'&#10005;');
   }
   railPill.addEventListener('click',function(){ railCollapsed=!railCollapsed; syncRail(); });
+  var railClose=document.getElementById('railClose');
+  if(railClose) railClose.addEventListener('click',function(){ railCollapsed=true; syncRail(); });
   panelPill.addEventListener('click',function(){ body.classList.toggle('panel-collapsed'); syncPanel(); });
   document.addEventListener('atlas:panel-sync',syncPanel);
   var resetAll=document.getElementById('resetAll');
