@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<defs>
+<linearGradient id="yacht-bg" x1="0" y1="0" x2="0.35" y2="1">
+<stop offset="0" stop-color="#0f3550"/><stop offset="1" stop-color="#04141f"/>
+</linearGradient>
+<linearGradient id="yacht-acc" x1="0.1" y1="0" x2="0.9" y2="1">
+<stop offset="0" stop-color="#8fe0ff"/><stop offset="1" stop-color="#2b8fc4"/>
+</linearGradient>
+<radialGradient id="yacht-sheen" cx="0.28" cy="0.1" r="0.95">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+<stop offset="0.62" stop-color="#ffffff" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect x="32" y="32" width="960" height="960" rx="216" fill="url(#yacht-bg)"/>
+<rect x="32" y="32" width="960" height="960" rx="216" fill="url(#yacht-sheen)"/>
+<rect x="46" y="46" width="932" height="932" rx="202" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="4"/>
+<path d="M540 216l176 300H540z" fill="url(#yacht-acc)"/>
+<path d="M472 300v216H322z" fill="#ffffff" fill-opacity="0.85"/>
+<rect x="496" y="200" width="20" height="330" rx="10" fill="#ffffff" fill-opacity="0.6"/>
+<path d="M236 570h552l-96 152H320z" fill="url(#yacht-acc)"/>
+<path d="M204 782c56 0 56 32 112 32s56-32 112-32 56 32 112 32 56-32 112-32 56 32 112 32" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="22" stroke-linecap="round"/>
+</svg>
